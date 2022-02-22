@@ -1,0 +1,215 @@
+.tlaloc-menu-bar
+{
+width:100%;
+border-bottom:1px solid lightgray;
+}
+
+.tlaloc-menu
+{
+display:inline-block;
+position: relative;
+}
+
+.tlaloc-menu-item
+{
+position: relative;
+}
+
+.tlaloc-menu-button
+{
+background: white;
+padding: 0.65em;
+font-family: sans-serif;
+font-size: 0.85em;
+user-select: none;
+}
+
+.tlaloc-menu-button.submenu
+{
+display: grid;
+grid-template-rows: 1fr;
+grid-template-columns: auto 1fr;
+}
+
+.tlaloc-menu-button.submenu > .text::after
+{
+content: "● ";
+padding-left: 0.5em;
+color: #00000000;
+}
+
+.tlaloc-menu-button:hover
+{
+background: #efefef;
+cursor: pointer;
+}
+
+.tlaloc-menu-list
+{
+display: none;
+position: absolute;
+top: 100%;
+left: 0;
+margin-top: 0.3em;
+border: 1px solid #ccc;
+grid-template-columns: max-content;
+}
+
+.tlaloc-separator
+{
+border-bottom: 1px solid #ccc;
+}
+
+.tlaloc-sub-menu-list
+{
+display: none;
+position: absolute;
+top: 0;
+left: 100%;
+margin-left: 0.3em;
+border: 1px solid #ccc;
+grid-template-columns: max-content;
+}
+
+.tlaloc-menu-button.selected
+{
+background: #efefef;
+}
+
+.tlaloc-menu-button.disabled
+{
+color: gray;
+}
+
+.tlaloc-menu-button.disabled:hover
+{
+background: white;
+}
+
+.tlaloc-menu-button-arrow::before
+{
+content: "▶";
+color: gray;
+}
+
+.tlaloc-menu-button.hotkey, .tlaloc-menu-button.right-arrow
+{
+grid-template-columns: auto 1fr auto;
+}
+
+.tlaloc-menu-button-hotkey
+{
+color: gray;
+}
+
+.tlaloc-menu-button-check::before
+{
+content: "●";
+padding-right: 0.5em;
+}
+
+.tlaloc-menu-button-check.none
+{
+color: #00000000;
+}
+
+.tlaloc-menu-button-check.unchecked
+{
+color: rgb(191, 191, 191);
+}
+
+.tlaloc-menu-button-check.checked
+{
+color: black;
+}
+
+.tlaloc-context-menu
+{
+display: none;
+position:absolute;
+top: 0;
+left: 0;
+border: 1px solid #ccc;
+grid-template-columns: max-content;
+}
+
+
+.tlaloc-tab
+{
+display:inline-block;
+background: white;
+padding: 0.3em;
+font-family: sans-serif;
+font-size: 0.85em;
+cursor:pointer;
+user-select: none;
+}
+
+.tlaloc-tab:hover
+{
+background: #efefef;
+}
+
+.tlaloc-tab.active
+{
+background: #efefef;
+}
+
+
+.tlaloc-dialog-cont
+{
+display: none;
+position: absolute;
+top: 0;
+left: 0;
+grid-template-rows: auto 1fr;
+grid-template-columns: max-content;
+border: 1px solid #ccc;
+box-sizing: border-box;
+}
+
+.tlaloc-dialog-head
+{
+position: relative;
+background: #4DB6AC;
+border-bottom: 1px solid #ccc;
+user-select: none;
+text-align: center;
+padding: 0.2em 1.5em;
+}
+
+.tlaloc-dialog-head-title
+{
+display: inline-block;
+
+}
+
+.tlaloc-dialog-head-controls
+{
+display: inline-block;
+position: absolute;
+top: 0;
+left: 0;
+padding: 0.2em 0.3em;
+}
+
+.tlaloc-dialog-head-controls-close
+{
+color: white;
+background: orange;
+cursor: pointer;
+width: 1em;
+height: 1em;
+border-radius: 50%;
+}
+
+.tlaloc-dialog-head-controls-close::before
+{
+content: '';
+}
+
+.tlaloc-dialog-main
+{
+background: white;
+padding: 1em;
+}

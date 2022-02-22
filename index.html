@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=device-width; initial-scale=1.0">
+
+	<title>MindEditor</title>
+
+	<link href="style/style.css" rel="stylesheet">
+	<link href="Tlaloc/style.css" rel="stylesheet">
+
+	<link href="favicon.ico" rel="icon" type="image/png" >
+
+	<script src="Tlaloc/script.js"></script>
+	<script src="script/class.js"></script>
+	<script src="script/script.js"></script>
+
+</head>
+<body>	
+	 
+	<div id="cont">
+
+		<div id="work">
+			<div id="menu"></div>
+			<div id="tabs"></div>
+			<canvas id="canvas"></canvas>
+			<input id="rename-area" type="text">
+			<div id="context-branch" class="context-menu">
+				<div>
+					<button onclick="showContextMenu('colorpicker');">Set color</button>
+					<button onclick="renameSelectedNode();">Rename</button>
+					<button onclick="deleteSelectedNode();">Delete</button>
+				</div>
+			</div>
+			<div id="context-color-picker" class="context-menu">
+				<div id="colors-cont">
+					<button id="color-picker-but" onclick="$('#color-picker').click();">
+						<input id="color-picker" type="color" onchange="colorPickerChanged();">
+						...
+					</button>
+				</div>
+			</div>
+			<div id="context-canvas" class="context-menu">
+				<div>
+					<button onclick="openImg();">Open image</button>
+					<button onclick="showDialog('rename');">Rename mindmap</button>
+				</div>
+			</div>
+
+			<form style="display: none;">
+				<input type="file" id="uploader" accept=".json" multiple>
+			</form>
+		</div>
+
+	</div>
+
+	<div id="dialogs-cont">
+		<div id="dialog-rename">
+			<form>
+				<input id="input-name" type="text" autocomplete="off">
+				<button id="button-name">Rename</button>
+			</form>
+		</div>
+		<div id="dialog-save">
+			<form>
+				<a href="" id="downloader" download="mind.json" style="display:none;">mind.json</a>
+				<input id="input-save" type="text" autocomplete="off">
+				<button id="button-save">Download</button>
+			</form>
+		</div>
+		<div id="dialog-open">
+			<form>
+				<div id="file-list-samples"></div>
+				<!-- <button id="button-open">Open</button> -->
+			</form>
+		</div>
+	</div>
+
+</body>
+</html>

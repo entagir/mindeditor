@@ -1,0 +1,57 @@
+{
+  "mindMap": [
+    {
+      "x": 683,
+      "y": 312,
+      "name": "MindEditor",
+      "color": "#7aa3e5",
+      "nodes": [
+        {
+          "x": 939,
+          "y": 345,
+          "name": "Open mind map",
+          "joint": 1,
+          "color": "#988ee3",
+          "nodes": [],
+          "action": "open"
+        },
+        {
+          "x": 939.776695296637,
+          "y": 273.22330470336317,
+          "name": "New mind map",
+          "joint": 1,
+          "color": "#67d7c4",
+          "nodes": [],
+          "action": "new"
+        },
+        {
+          "x": 435,
+          "y": 351.00000000000006,
+          "name": "Help",
+          "joint": 3,
+          "color": "#e68782",
+          "nodes": [],
+          "action": "help"
+        },
+        {
+          "x": 433.22330470336306,
+          "y": 272.22330470336317,
+          "name": "Samples",
+          "joint": 3,
+          "color": "#ebd95f",
+          "nodes": [],
+          "action": "samples"
+        },
+        {
+          "x": 746,
+          "y": 430,
+          "name": "GitHub",
+          "joint": 2,
+          "color": "#9ed56b",
+          "nodes": [],
+          "action": "git"
+        }
+      ]
+    }
+  ]
+}

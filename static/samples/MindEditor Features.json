@@ -1,0 +1,135 @@
+{
+  "mindMap": [
+    {
+      "x": 621,
+      "y": 268.5,
+      "name": "MindEditor features",
+      "color": "#9ed56b",
+      "nodes": [
+        {
+          "x": 826,
+          "y": 267.5,
+          "name": "Server",
+          "joint": 1,
+          "color": "#67d7c4",
+          "nodes": [
+            {
+              "x": 1006,
+              "y": 223.5,
+              "name": "MindStorage API",
+              "joint": 1,
+              "color": "#67d7c4",
+              "nodes": [
+                {
+                  "x": 1066,
+                  "y": 209.5,
+                  "name": "Official API getting samples mindmaps",
+                  "joint": 1,
+                  "color": "#67d7c4",
+                  "nodes": []
+                },
+                {
+                  "x": 1068.776695296637,
+                  "y": 246.27669529663683,
+                  "name": "Other API available by link",
+                  "joint": 1,
+                  "color": "#67d7c4",
+                  "nodes": []
+                }
+              ]
+            },
+            {
+              "x": 1010.776695296637,
+              "y": 314.27669529663683,
+              "name": "Google Drive connection",
+              "joint": 1,
+              "color": "#67d7c4",
+              "nodes": []
+            }
+          ]
+        },
+        {
+          "x": 419,
+          "y": 268.5,
+          "name": "Client",
+          "joint": 3,
+          "color": "#efa670",
+          "nodes": [
+            {
+              "x": 321,
+              "y": 219.50000000000006,
+              "name": "Links and pictures on branch",
+              "joint": 3,
+              "color": "#efa670",
+              "nodes": []
+            },
+            {
+              "x": 318.22330470336317,
+              "y": 304.27669529663694,
+              "name": "Presentaion mode",
+              "joint": 3,
+              "color": "#efa670",
+              "nodes": []
+            },
+            {
+              "x": 306.22330470336306,
+              "y": 264.72330470336317,
+              "name": "Fully customizable style",
+              "joint": 3,
+              "color": "#efa670",
+              "nodes": []
+            }
+          ]
+        },
+        {
+          "x": 661,
+          "y": 341.5,
+          "name": "Other",
+          "joint": 2,
+          "color": "#988ee3",
+          "nodes": [
+            {
+              "x": 760,
+              "y": 382.5,
+              "name": "Versions",
+              "joint": 2,
+              "color": "#988ee3",
+              "nodes": [
+                {
+                  "x": 829,
+                  "y": 358.5,
+                  "name": "Progressive Web App",
+                  "joint": 2,
+                  "color": "#988ee3",
+                  "nodes": []
+                },
+                {
+                  "x": 831.2233047033633,
+                  "y": 389.27669529663694,
+                  "name": "Electron",
+                  "joint": 2,
+                  "color": "#988ee3",
+                  "nodes": []
+                },
+                {
+                  "x": 831.2233047033633,
+                  "y": 420.27669529663694,
+                  "name": "Native",
+                  "joint": 2,
+                  "color": "#988ee3",
+                  "nodes": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "editorSetings": {
+    "centerOfView": {
+      "x": 651,
+      "y": 219.5
+    }
+  }
+}

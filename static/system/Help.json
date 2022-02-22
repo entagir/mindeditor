@@ -1,0 +1,105 @@
+{
+  "mindMap": [
+    {
+      "x": 315,
+      "y": 332.5,
+      "name": "How to use",
+      "color": "#7aa3e5",
+      "nodes": [
+        {
+          "x": 607,
+          "y": 220.5,
+          "name": "Create new mind map",
+          "joint": 1,
+          "color": "#e68782",
+          "nodes": [
+            {
+              "x": 757,
+              "y": 202.5,
+              "name": "Click to \"New\" button",
+              "joint": 1,
+              "color": "#e68782",
+              "nodes": []
+            }
+          ]
+        },
+        {
+          "x": 519.776695296637,
+          "y": 449.27669529663683,
+          "name": "Open exists mind map",
+          "joint": 1,
+          "color": "#e096e9",
+          "nodes": [
+            {
+              "x": 742.776695296637,
+              "y": 365.27669529663683,
+              "name": "Upload local file (.json)",
+              "joint": 1,
+              "color": "#ebd95f",
+              "nodes": [
+                {
+                  "x": 971.776695296637,
+                  "y": 322.27669529663683,
+                  "name": "Click to \"Open\" button",
+                  "joint": 1,
+                  "color": "#ebd95f",
+                  "nodes": [
+                    {
+                      "x": 1040.776695296637,
+                      "y": 322.27669529663683,
+                      "name": "Chose file",
+                      "joint": 1,
+                      "color": "#ebd95f",
+                      "nodes": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "x": 714.5533905932739,
+              "y": 531.0533905932737,
+              "name": "Load some sample map",
+              "joint": 1,
+              "color": "#efa670",
+              "nodes": [
+                {
+                  "x": 950.5533905932739,
+                  "y": 512.0533905932737,
+                  "name": "Go to main menu (\"MindEditor\" button)",
+                  "joint": 1,
+                  "color": "#efa670",
+                  "nodes": [
+                    {
+                      "x": 1098.553390593274,
+                      "y": 523.0533905932737,
+                      "name": "Click to \"Samples\" on mindmap",
+                      "joint": 1,
+                      "color": "#efa670",
+                      "nodes": [
+                        {
+                          "x": 1155.553390593274,
+                          "y": 522.0533905932737,
+                          "name": "Chose mindmap",
+                          "joint": 1,
+                          "color": "#efa670",
+                          "nodes": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "editorSetings": {
+    "centerOfView": {
+      "x": 627,
+      "y": 155.5
+    }
+  }
+}

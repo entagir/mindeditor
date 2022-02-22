@@ -1,0 +1,432 @@
+{
+  "mindMap": [
+    {
+      "x": 677,
+      "y": 234.5,
+      "name": "Palms",
+      "color": "#9ed56b",
+      "nodes": [
+        {
+          "x": 1140,
+          "y": -42.5,
+          "name": "Phoenix",
+          "joint": 1,
+          "color": "#ebd95f",
+          "nodes": [
+            {
+              "x": 1394,
+              "y": -37.5,
+              "name": "Phoenix acaulis",
+              "joint": 1,
+              "color": "#ebd95f",
+              "nodes": []
+            },
+            {
+              "x": 1316.776695296637,
+              "y": -219.27669529663686,
+              "name": "Phoenix andamanensis",
+              "joint": 1,
+              "color": "#ebd95f",
+              "nodes": []
+            },
+            {
+              "x": 1311.776695296637,
+              "y": 157.27669529663683,
+              "name": "Phoenix atlantica",
+              "joint": 1,
+              "color": "#ebd95f",
+              "nodes": []
+            },
+            {
+              "x": 1370.9698831278217,
+              "y": -138.17085809127246,
+              "name": "Phoenix caespitosa",
+              "joint": 1,
+              "color": "#ebd95f",
+              "nodes": []
+            },
+            {
+              "x": 1372.9698831278217,
+              "y": 68.17085809127246,
+              "name": "Phoenix canariensis",
+              "joint": 1,
+              "color": "#ebd95f",
+              "nodes": []
+            },
+            {
+              "x": 1262.6708580912725,
+              "y": -290.4698831278217,
+              "name": "Phoenix dactylifera",
+              "joint": 1,
+              "color": "#ebd95f",
+              "nodes": []
+            },
+            {
+              "x": 1240.6708580912725,
+              "y": 240.46988312782173,
+              "name": "Phoenix loureiroi",
+              "joint": 1,
+              "color": "#ebd95f",
+              "nodes": []
+            },
+            {
+              "x": 1385.1963201008075,
+              "y": -91.27258050403208,
+              "name": "Phoenix paludosa",
+              "joint": 1,
+              "color": "#ebd95f",
+              "nodes": []
+            },
+            {
+              "x": 1393.1963201008075,
+              "y": 18.272580504032078,
+              "name": "Phoenix pusilla",
+              "joint": 1,
+              "color": "#ebd95f",
+              "nodes": []
+            },
+            {
+              "x": 1347.8674030756363,
+              "y": -181.39255825490054,
+              "name": "Phoenix reclinata",
+              "joint": 1,
+              "color": "#ebd95f",
+              "nodes": []
+            },
+            {
+              "x": 1338.8674030756363,
+              "y": 110.39255825490056,
+              "name": "Phoenix roebelenii",
+              "joint": 1,
+              "color": "#ebd95f",
+              "nodes": []
+            },
+            {
+              "x": 1278.8925582549005,
+              "y": -250.3674030756363,
+              "name": "Phoenix rupicola",
+              "joint": 1,
+              "color": "#ebd95f",
+              "nodes": []
+            },
+            {
+              "x": 1277.8925582549005,
+              "y": 196.36740307563628,
+              "name": "Phoenix sylvestris",
+              "joint": 1,
+              "color": "#ebd95f",
+              "nodes": []
+            },
+            {
+              "x": 1230.772580504032,
+              "y": -325.6963201008076,
+              "name": "Phoenix theophrasti",
+              "joint": 1,
+              "color": "#ebd95f",
+              "nodes": []
+            }
+          ]
+        },
+        {
+          "x": 1071.776695296637,
+          "y": 299.72330470336317,
+          "name": "Cocos",
+          "joint": 1,
+          "color": "#7aa3e5",
+          "nodes": [
+            {
+              "x": 1212.776695296637,
+              "y": 324.72330470336317,
+              "name": "Cocos nucifera",
+              "joint": 1,
+              "color": "#7aa3e5",
+              "nodes": []
+            }
+          ]
+        },
+        {
+          "x": 1105.776695296637,
+          "y": 633.2766952966368,
+          "name": "Roystonea",
+          "joint": 1,
+          "color": "#988ee3",
+          "nodes": [
+            {
+              "x": 1355.776695296637,
+              "y": 633.2766952966368,
+              "name": "Roystonea altissima",
+              "joint": 1,
+              "color": "#988ee3",
+              "nodes": []
+            },
+            {
+              "x": 1282.553390593274,
+              "y": 456.5,
+              "name": "Roystonea borinquena",
+              "joint": 1,
+              "color": "#988ee3",
+              "nodes": []
+            },
+            {
+              "x": 1282.553390593274,
+              "y": 810.0533905932737,
+              "name": "Roystonea dunlapiana",
+              "joint": 1,
+              "color": "#988ee3",
+              "nodes": []
+            },
+            {
+              "x": 1336.7465784244587,
+              "y": 537.6058372053644,
+              "name": "Roystonea lenis",
+              "joint": 1,
+              "color": "#988ee3",
+              "nodes": []
+            },
+            {
+              "x": 1336.7465784244587,
+              "y": 728.9475533879092,
+              "name": "Roystonea maisiana",
+              "joint": 1,
+              "color": "#988ee3",
+              "nodes": []
+            },
+            {
+              "x": 1201.4475533879095,
+              "y": 402.3068121688152,
+              "name": "Roystonea oleracea",
+              "joint": 1,
+              "color": "#988ee3",
+              "nodes": []
+            },
+            {
+              "x": 1201.4475533879095,
+              "y": 864.2465784244584,
+              "name": "Roystonea princeps",
+              "joint": 1,
+              "color": "#988ee3",
+              "nodes": []
+            },
+            {
+              "x": 1350.9730153974447,
+              "y": 584.5041147926048,
+              "name": "Roystonea regia",
+              "joint": 1,
+              "color": "#988ee3",
+              "nodes": []
+            },
+            {
+              "x": 1350.9730153974447,
+              "y": 682.0492758006689,
+              "name": "Roystonea violacea",
+              "joint": 1,
+              "color": "#988ee3",
+              "nodes": []
+            }
+          ]
+        },
+        {
+          "x": 302,
+          "y": 622.5,
+          "name": "Washingtonia",
+          "joint": 3,
+          "color": "#efa670",
+          "nodes": [
+            {
+              "x": 52,
+              "y": 622.5,
+              "name": "Washingtonia robusta",
+              "joint": 3,
+              "color": "#efa670",
+              "nodes": []
+            },
+            {
+              "x": 50.223304703363084,
+              "y": 556.723304703363,
+              "name": "Washingtonia filifera",
+              "joint": 3,
+              "color": "#efa670",
+              "nodes": []
+            },
+            {
+              "x": 54.22330470336314,
+              "y": 703.276695296637,
+              "name": "Washingtonia filibusta",
+              "joint": 3,
+              "color": "#efa670",
+              "nodes": []
+            }
+          ]
+        },
+        {
+          "x": 207.22330470336306,
+          "y": 60.72330470336314,
+          "name": "Sabal",
+          "joint": 3,
+          "color": "#67d7c4",
+          "nodes": [
+            {
+              "x": -46.776695296636944,
+              "y": 52.72330470336317,
+              "name": "Sabal antillensis",
+              "joint": 3,
+              "color": "#67d7c4",
+              "nodes": []
+            },
+            {
+              "x": 43.44660940672614,
+              "y": -127.05339059327372,
+              "name": "Sabal bermudana",
+              "joint": 3,
+              "color": "#67d7c4",
+              "nodes": []
+            },
+            {
+              "x": 30.446609406726196,
+              "y": 237.5,
+              "name": "Sabal causiarum",
+              "joint": 3,
+              "color": "#67d7c4",
+              "nodes": []
+            },
+            {
+              "x": -6.746578424458676,
+              "y": -46.94755338790917,
+              "name": "Sabal domingensis",
+              "joint": 3,
+              "color": "#67d7c4",
+              "nodes": []
+            },
+            {
+              "x": -23.74657842445862,
+              "y": 156.39416279463563,
+              "name": "Sabal etonia",
+              "joint": 3,
+              "color": "#67d7c4",
+              "nodes": []
+            },
+            {
+              "x": 111.55244661209065,
+              "y": -199.24657842445856,
+              "name": "Sabal gretheriae",
+              "joint": 3,
+              "color": "#67d7c4",
+              "nodes": []
+            },
+            {
+              "x": 126.55244661209065,
+              "y": 310.6931878311848,
+              "name": "Sabal lougheediana",
+              "joint": 3,
+              "color": "#67d7c4",
+              "nodes": []
+            },
+            {
+              "x": -22.973015397444584,
+              "y": -9.049275800668838,
+              "name": "Sabal maritima",
+              "joint": 3,
+              "color": "#67d7c4",
+              "nodes": []
+            },
+            {
+              "x": -38.973015397444556,
+              "y": 120.49588520739519,
+              "name": "Sabal mauritiiformis",
+              "joint": 3,
+              "color": "#67d7c4",
+              "nodes": []
+            },
+            {
+              "x": 13.355901627726752,
+              "y": -90.16925355153742,
+              "name": "Sabal mexicana",
+              "joint": 3,
+              "color": "#67d7c4",
+              "nodes": []
+            },
+            {
+              "x": -0.6440983722732767,
+              "y": 199.61586295826368,
+              "name": "Sabal miamiensis",
+              "joint": 3,
+              "color": "#67d7c4",
+              "nodes": []
+            },
+            {
+              "x": 69.33074644846232,
+              "y": -164.14409837227305,
+              "name": "Sabal minor",
+              "joint": 3,
+              "color": "#67d7c4",
+              "nodes": []
+            },
+            {
+              "x": 78.33074644846249,
+              "y": 277.59070777899944,
+              "name": "Sabal palmetto",
+              "joint": 3,
+              "color": "#67d7c4",
+              "nodes": []
+            },
+            {
+              "x": 151.45072419933092,
+              "y": -245.47301539744444,
+              "name": "Sabal pumos",
+              "joint": 3,
+              "color": "#67d7c4",
+              "nodes": []
+            },
+            {
+              "x": 170.45072419933103,
+              "y": 339.9196248041708,
+              "name": "Sabal rosei",
+              "joint": 3,
+              "color": "#67d7c4",
+              "nodes": []
+            },
+            {
+              "x": -43.57287696468617,
+              "y": 24.219019620973,
+              "name": "Sabal uresana",
+              "joint": 3,
+              "color": "#67d7c4",
+              "nodes": []
+            },
+            {
+              "x": -41.572876964686145,
+              "y": 85.22758978575337,
+              "name": "Sabal yapa",
+              "joint": 3,
+              "color": "#67d7c4",
+              "nodes": []
+            }
+          ]
+        },
+        {
+          "x": 257.22330470336317,
+          "y": 389.27669529663694,
+          "name": "Chamaerops",
+          "joint": 3,
+          "color": "#e68782",
+          "nodes": [
+            {
+              "x": 68.22330470336317,
+              "y": 422.27669529663694,
+              "name": "Chamaerops humilis",
+              "joint": 3,
+              "color": "#e68782",
+              "nodes": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "editorSetings": {
+    "centerOfView": {
+      "x": 679,
+      "y": 121.5
+    }
+  }
+}
