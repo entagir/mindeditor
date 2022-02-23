@@ -532,41 +532,41 @@ function drawConnector(ctx, x, y, color, active)
 	}
 }
 
-function generateNodeCoords(node, joint_num)
+function generateNodeCoords(node, jointNum)
 {
-	let center = {x:node.x, y:node.y}; // Center of circle
-	let radius = 250; // Radius of circle
+	let center = {x: node.x, y: node.y}; // Center of circle
+	let radius = 160; // Radius of circle
 	
 	let angle = 0;
 
-	if(joint_num == 0)
+	if(jointNum == 0)
 	{
-		center.y -= 30;
+		center.y -= node.boundbox.h / 2;
 		angle += 180;
 	}
-	if(joint_num == 1)
+	if(jointNum == 1)
 	{
-		center.x += 75;
+		center.x += node.boundbox.w / 2;
 		angle -= 90;
 	}
-	if(joint_num == 2)
+	if(jointNum == 2)
 	{
-		center.y += 30;
+		center.y += node.boundbox.h / 2;
 		angle -= 0;
 	}
-	if(joint_num == 3)
+	if(jointNum == 3)
 	{
-		center.x -= 75;
+		center.x -= node.boundbox.w / 2;
 		angle += 90;
 	}
 	
-	if(node.parent !== undefined){center = {x:node.x, y:node.y};}
+	if(node.parent){center = {x: node.x, y: node.y};}
 	
-	let angle_cur = 90;
+	let currentAngle = 90;
 	
 	while(true)
 	{
-		let angle_start_c = 90 - angle_cur/2;
+		let angle_start_c = 90 - currentAngle / 2;
 		let angle_offset = 0;
 		
 		let sym = 0;
@@ -576,23 +576,23 @@ function generateNodeCoords(node, joint_num)
 			let angle_start = angle_start_c;
 			if(sym == 0)
 			{
-				if((joint_num == 0)||(joint_num == 1)){angle_start -= angle_offset;}
+				if((jointNum == 0)||(jointNum == 1)){angle_start -= angle_offset;}
 				else{angle_start += angle_offset;}
 				sym = 1;
 			}
 			else
 			{
-				if((joint_num == 0) || (joint_num == 1)){angle_start += angle_offset;}
+				if((jointNum == 0) || (jointNum == 1)){angle_start += angle_offset;}
 				else{angle_start -= angle_offset;}
 				sym = 0;
 			}
 			
 			let top = radius * Math.sin((angle + angle_start) * Math.PI/180) + center.y;
-			let bottom = radius * Math.sin((angle + angle_start + angle_cur) * Math.PI/180) + center.y;
+			let bottom = radius * Math.sin((angle + angle_start + currentAngle) * Math.PI/180) + center.y;
 			let left = radius * Math.cos((angle + angle_start) * Math.PI/180) + center.x;
-			let right = radius * Math.cos((angle + angle_start + angle_cur) * Math.PI/180) + center.x;
+			let right = radius * Math.cos((angle + angle_start + currentAngle) * Math.PI/180) + center.x;
 			
-			if((joint_num == 2) || (joint_num == 3))
+			if((jointNum == 2) || (jointNum == 3))
 			{
 				let temp = top;
 				top = bottom;
@@ -607,9 +607,9 @@ function generateNodeCoords(node, joint_num)
 			
 			for(let i in node.childs)
 			{
-				if(node.childs[i].joint == joint_num)
+				if(node.childs[i].joint == jointNum)
 				{
-					if((joint_num == 1) || (joint_num == 3))
+					if((jointNum == 1) || (jointNum == 3))
 					{
 						if((node.childs[i].y > top) && (node.childs[i].y < bottom))
 						{
@@ -630,7 +630,7 @@ function generateNodeCoords(node, joint_num)
 			
 			if(!flag)
 			{
-				let angle_new = (angle + angle_start + angle_cur/2) * Math.PI/180;
+				let angle_new = (angle + angle_start + currentAngle/2) * Math.PI/180;
 			
 				let out_coords = {x:0, y:0};
 				out_coords.x = radius * Math.cos(angle_new) + center.x;
@@ -641,13 +641,13 @@ function generateNodeCoords(node, joint_num)
 			
 			if(sym == 0)
 			{
-				angle_offset += angle_cur/2;
+				angle_offset += currentAngle/2;
 				
 				if(angle_start_c - angle_offset < 0){break;}
 			}
 		}
 		
-		angle_cur /= 2;
+		currentAngle /= 2;
 	}
 }
 
