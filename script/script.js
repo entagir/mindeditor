@@ -1585,7 +1585,7 @@ function closeFile(num)
 		num = mindMapNum;
 	}
 
-	if(num == 'start'){return;}
+	if(num == 'start' || num == 'help'){return;}
 
 	if(mindMaps.flat().length > 1)
 	{
