@@ -38,12 +38,13 @@ let lastActiveNode = -1; // last active node index
 
 let placeholder = 'Press to edit';
 let defaultName = 'New mindmap';
+let splashText = 'Use Double Click to add nodes';
 
 let localSamples = {};
 let systemFiles = {};
 
 let colors = {};
-colors['lightgray'] = '#565656';
+colors['baseText'] = '#565656';
 colors['background'] = '#fcfcfc';
 colors['border'] = '#E9E9E9';
 colors.branches = ['#e096e9', '#988ee3', '#7aa3e5', '#67d7c4', '#9ed56b', '#ebd95f', '#efa670', '#e68782'];
@@ -328,6 +329,13 @@ function draw(mindMap)
 
 	ctx.fillStyle = colors['background'];
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+	if(mindMap.nodes.length == 0)
+	{
+		drawSplash(ctx);
+
+		return;
+	}
 	
 	// Draw branches
 	for(let i in mindMap.nodes)
@@ -437,7 +445,7 @@ function drawEdge(ctx, start, end, color)
 
 		if(DEBUG)
 		{
-			ctx.fillStyle = colors['lightgray'];
+			ctx.fillStyle = colors['baseText'];
 
 			ctx.fillRect( p1x, p1y, 10, 10);
 			ctx.fillRect( p2x, p2y, 10, 10);
@@ -465,7 +473,7 @@ function drawRootText(ctx, node)
 	let text = placeholder;
 	if(node.name != ''){text = node.name;}
 
-	ctx.fillStyle = '#565656';
+	ctx.fillStyle = colors['baseText'];
 	ctx.textBaseline = 'middle';
 	ctx.textAlign = 'center';
 	ctx.font = 'bold ' + 20 + 'px Arial';
@@ -475,7 +483,7 @@ function drawRootText(ctx, node)
 function drawNodeText(ctx, node)
 {
 	ctx.font = 'bold ' + 15 + 'px Arial';
-	ctx.fillStyle = colors['lightgray'];
+	ctx.fillStyle = colors['baseText'];
 	ctx.textBaseline = 'middle';
 	ctx.textAlign = 'left';
 
@@ -490,7 +498,7 @@ function drawNodeText(ctx, node)
 
 	if(DEBUG)
 	{
-		ctx.strokeStyle = colors['lightgray'];
+		ctx.strokeStyle = colors['baseText'];
 		ctx.strokeRect(node.textbox.x, node.textbox.y, node.textbox.w, node.textbox.h);
 	}
 	
@@ -530,6 +538,15 @@ function drawConnector(ctx, x, y, color, active)
 		ctx.font = 'bold ' + 20 + 'px Arial';
 		ctx.fillText('+', x, y);
 	}
+}
+
+function drawSplash(ctx)
+{
+	ctx.fillStyle = colors['baseText'];
+	ctx.textBaseline = 'middle';
+	ctx.textAlign = 'center';
+	ctx.font = 'bold ' + 20 + 'px Arial';
+	ctx.fillText(splashText, canvas.width / 2, canvas.height / 2);
 }
 
 function generateNodeCoords(node, jointNum)
