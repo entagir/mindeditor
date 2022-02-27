@@ -16,4 +16,4 @@ jobs:
       - run: chmod 600 "$HOME/.ssh/key"
 
       # Deploy
-      - run: rsync -e "ssh -p 20022 -i $HOME/.ssh/key -o StrictHostKeyChecking=no" --archive --compress --delete . u0418897@31.31.198.239:/var/www/u0418897/public_html/mind.entagir.ru
+      - run: rsync -e "ssh -p 22 -i $HOME/.ssh/key -o StrictHostKeyChecking=no" --archive --compress --delete . u0418897@31.31.198.239:/var/www/u0418897/public_html/mind.entagir.ru
