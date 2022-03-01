@@ -31,8 +31,10 @@ let renameMode = false;
 let renameAuto = false;
 let renamedNode;
 
-let cursorOffset = { x:0, y:0 };
-let canvasOffset = { x:0, y:0 };
+let cursorOffset = {x: 0, y: 0};
+let canvasOffset = {x: 0, y: 0};
+let mindMapBox = {x: 0, y: 0, width: 0, height: 0};
+let bufferOfView = 20 * 2;
 
 let lastActiveNode = -1; // last active node index
 
@@ -65,7 +67,11 @@ window.onresize = function()
 	canvas.width = canvas.clientWidth;
 	canvas.height = canvas.clientHeight;
 
-	if(!mindMap.editable){setViewOnCenterOfWeight();}
+	if(!mindMap.editable)
+	{
+		checkBounds();
+		setViewOnCenterOfWeight();
+	}
 	
 	draw(mindMap);
 }
@@ -127,7 +133,7 @@ async function loadFromUrl(url)
 {
 	let res = await fetch(url);
 	let json = await res.json();
-	console.info('Loaded: ' + url);
+	if(DEBUG){console.info('Loaded: ' + url);}
 
 	return json;
 }
@@ -143,7 +149,7 @@ async function loadLocalFiles(files, storageName, fileList)
 
 		if(staticFile && staticFile.version == fileItem.version)
 		{
-			console.info('Opened: ' + fileItem.name);
+			if(DEBUG){console.info('Opened: ' + fileItem.name);}
 		}
 		else
 		{
@@ -211,6 +217,8 @@ async function initFiles()
 			showDialog('');
 
 			addMindMap(i, localSamples[i]['mindMap']);
+
+			checkBounds();
 			setViewOnCenterOfWeight();
 		});
 		fileList.appendChild(button);
@@ -221,6 +229,8 @@ async function initFiles()
 
 function checkBounds()
 {
+	console.info('check');
+
 	// Check nodes and titles width and height
 
 	let ctx = canvas.getContext('2d');
@@ -234,31 +244,37 @@ function checkBounds()
 			let text = placeholder;
 			drawRootText(ctx, node);
 
-			node.textbox.w = ctx.measureText(text).width;
-			node.textbox.h = ctx.measureText(text).actualBoundingBoxAscent + ctx.measureText(text).actualBoundingBoxDescent;
+			node.textbox.width = ctx.measureText(text).width;
+			node.textbox.height = ctx.measureText(text).actualBoundingBoxAscent + ctx.measureText(text).actualBoundingBoxDescent;
 			
-			node.boundbox.w = node.textbox.w + 20 * 2;
-			node.boundbox.h = 20 * 3;
+			node.boundbox.width = node.textbox.width + 20 * 2;
+			node.boundbox.height = 20 * 3;
 
 			if(node.name != '')
 			{
 				text = node.name;
 				drawRootText(ctx, node);
 
-				node.textbox.w = ctx.measureText(text).width;
-				node.textbox.h = ctx.measureText(text).actualBoundingBoxAscent + ctx.measureText(text).actualBoundingBoxDescent;
+				node.textbox.width = ctx.measureText(text).width;
+				node.textbox.height = ctx.measureText(text).actualBoundingBoxAscent + ctx.measureText(text).actualBoundingBoxDescent;
 
-				let currentBoundBox = {w: node.textbox.w + 20 * 2, h: 20 * 3};
+				let currentBoundBox = {width: node.textbox.width + 20 * 2, height: 20 * 3};
 
-				if(currentBoundBox.w > node.boundbox.w)
+				if(currentBoundBox.width > node.boundbox.width)
 				{
-					node.boundbox.w = currentBoundBox.w;
+					node.boundbox.width = currentBoundBox.width;
 				}
-				if(currentBoundBox.h > node.boundbox.h)
+				if(currentBoundBox.height > node.boundbox.height)
 				{
-					node.boundbox.h = currentBoundBox.h;
+					node.boundbox.height = currentBoundBox.height;
 				}
 			}
+
+			node.boundbox.x = node.x - node.boundbox.width / 2;
+			node.boundbox.y = node.y - node.boundbox.height / 2;
+
+			node.textbox.x = node.x - node.textbox.width / 2;
+			node.textbox.y = node.y - node.textbox.height / 2;
 		}
 		else
 		{
@@ -276,8 +292,10 @@ function checkBounds()
 
 			let text = node.name || placeholder;
 			drawNodeText(ctx, node);
-			node.textbox.w = ctx.measureText(text).width;
-			node.textbox.h = ctx.measureText(text).actualBoundingBoxAscent + ctx.measureText(text).actualBoundingBoxDescent;	
+
+			node.textbox.width = ctx.measureText(text).width;
+			node.textbox.height = ctx.measureText(text).actualBoundingBoxAscent + ctx.measureText(text).actualBoundingBoxDescent;	
+			if(node.textbox.height < node.textbox.minHeight){node.textbox.height = node.textbox.minHeight;}
 
 			let textOffset = {x: 0, y: 0};
 			
@@ -307,18 +325,57 @@ function checkBounds()
 				}
 			}
 
-			let point = def({x:node.x, y:node.y});
-			
-			node.textbox.x = point.x + textOffset.x;
+			node.textbox.x = node.x + textOffset.x;
 			
 			if(textOffset.x < 0)
 			{
-				node.textbox.x -= node.textbox.w
+				node.textbox.x -= node.textbox.width
 			}
 		
-			node.textbox.y = point.y + textOffset.y - node.textbox.h / 2;
+			node.textbox.y = node.y + textOffset.y - node.textbox.height / 2;
 		}
 	}
+
+	// Calculate mind map boundbox
+	let mindMapRect = {left: Infinity, top: Infinity, right: 0, bottom: 0};
+
+	for(let i in mindMap.nodes)
+	{
+		let x = mindMap.nodes[i].x;
+		let y = mindMap.nodes[i].y;
+		let textbox =  mindMap.nodes[i].textbox;
+
+		if(mindMap.nodes[i].parent === undefined)
+		{
+			textbox = mindMap.nodes[i].boundbox;
+		}
+
+		if(x < mindMapRect.left){mindMapRect.left = x;}
+		if(textbox.x <  mindMapRect.left)
+		{
+			mindMapRect.left = textbox.x;
+		}
+
+		if(x > mindMapRect.right){mindMapRect.right = x;}
+		if(textbox.x + textbox.width >  mindMapRect.right)
+		{
+			mindMapRect.right = textbox.x + textbox.width;
+		}
+
+		if(y < mindMapRect.top){mindMapRect.top = y;}
+		if(textbox.y <  mindMapRect.top)
+		{
+			mindMapRect.top = textbox.y;
+		}
+
+		if(y > mindMapRect.bottom){mindMapRect.bottom = y;}
+		if(textbox.y + textbox.height >  mindMapRect.bottom)
+		{
+			mindMapRect.bottom = textbox.y + textbox.height;
+		}
+	}
+
+	mindMapBox = {x: mindMapRect.left, y: mindMapRect.top, width: mindMapRect.right - mindMapRect.left, height: mindMapRect.bottom - mindMapRect.top};	
 }
 
 function draw(mindMap)
@@ -351,10 +408,10 @@ function draw(mindMap)
 
 				let parent = mindMap.nodes[i].parent;
 
-				if(mindMap.nodes[i].joint == 0){startLine = {x: 0, y: -parent.boundbox.h / 2};}
-				if(mindMap.nodes[i].joint == 1){startLine = {x: parent.boundbox.w / 2, y: 0};}
-				if(mindMap.nodes[i].joint == 2){startLine = {x: 0, y: parent.boundbox.h / 2};}
-				if(mindMap.nodes[i].joint == 3){startLine = {x: -parent.boundbox.w / 2, y: 0};}
+				if(mindMap.nodes[i].joint == 0){startLine = {x: 0, y: -parent.boundbox.height / 2};}
+				if(mindMap.nodes[i].joint == 1){startLine = {x: parent.boundbox.width / 2, y: 0};}
+				if(mindMap.nodes[i].joint == 2){startLine = {x: 0, y: parent.boundbox.height / 2};}
+				if(mindMap.nodes[i].joint == 3){startLine = {x: -parent.boundbox.width / 2, y: 0};}
 			}
 			
 			// Draw parent to child (this) branch
@@ -383,6 +440,14 @@ function draw(mindMap)
 			drawRootNode(ctx, mindMap.nodes[i]);
 		}
 	}
+
+	if(DEBUG)
+	{
+		ctx.lineWidth = 2;
+		ctx.strokeStyle = colors['border'];
+		let mindMapBoxPoint = def({x: mindMapBox.x, y: mindMapBox.y});
+		ctx.strokeRect(mindMapBoxPoint.x, mindMapBoxPoint.y, mindMapBox.width, mindMapBox.height);
+	}
 }
 
 function drawRootNode(ctx, node)
@@ -395,16 +460,16 @@ function drawRootNode(ctx, node)
 	ctx.lineWidth = 2;
 	ctx.strokeStyle = colors['border'];
 
-	drawRoundedRect(ctx, point.x - node.boundbox.w / 2, point.y - node.boundbox.h / 2, node.boundbox.w, node.boundbox.h, 10);
+	drawRoundedRect(ctx, point.x - node.boundbox.width / 2, point.y - node.boundbox.height / 2, node.boundbox.width, node.boundbox.height, 10);
 	drawRootText(ctx, node);
 
 	if(!(renameMode && renamedNode == node))
 	{
 		// Draw connectors ("+" circles)
-		drawConnector(ctx, point.x, point.y - node.boundbox.h / 2, node.color, node.joint_state == 0);
-		drawConnector(ctx, point.x + node.boundbox.w / 2, point.y, node.color, node.joint_state == 1);
-		drawConnector(ctx, point.x, point.y + node.boundbox.h / 2, node.color, node.joint_state == 2);
-		drawConnector(ctx, point.x - node.boundbox.w / 2, point.y, node.color, node.joint_state == 3);
+		drawConnector(ctx, point.x, point.y - node.boundbox.height / 2, node.color, node.joint_state == 0);
+		drawConnector(ctx, point.x + node.boundbox.width / 2, point.y, node.color, node.joint_state == 1);
+		drawConnector(ctx, point.x, point.y + node.boundbox.height / 2, node.color, node.joint_state == 2);
+		drawConnector(ctx, point.x - node.boundbox.width / 2, point.y, node.color, node.joint_state == 3);
 	}
 }
 
@@ -478,6 +543,14 @@ function drawRootText(ctx, node)
 	ctx.textAlign = 'center';
 	ctx.font = 'bold ' + 20 + 'px Arial';
 	ctx.fillText(text, point.x, point.y);
+
+	if(DEBUG)
+	{
+		let textboxCoords = def({x: node.textbox.x, y: node.textbox.y});
+
+		ctx.strokeStyle = colors['baseText'];
+		ctx.strokeRect(textboxCoords.x, textboxCoords.y, node.textbox.width, node.textbox.height);;
+	}
 }
 
 function drawNodeText(ctx, node)
@@ -494,17 +567,22 @@ function drawNodeText(ctx, node)
 		ctx.fillStyle = node.color;
 	}
 
-	ctx.fillText(text, node.textbox.x, node.textbox.y + node.textbox.h / 2);
+	let textboxCoords = def({x: node.textbox.x, y: node.textbox.y});
+
+	ctx.fillText(text, textboxCoords.x, textboxCoords.y + node.textbox.height / 2);
 
 	if(DEBUG)
 	{
 		ctx.strokeStyle = colors['baseText'];
-		ctx.strokeRect(node.textbox.x, node.textbox.y, node.textbox.w, node.textbox.h);
+		ctx.strokeRect(textboxCoords.x, textboxCoords.y, node.textbox.width, node.textbox.height);
+
+		ctx.fillStyle = node.color;
+		ctx.fillRect(textboxCoords.x, textboxCoords.y, 5, 5);
 	}
 	
 	if(node.action)
 	{
-		ctx.fillRect(node.textbox.x, node.textbox.y + node.textbox.h, node.textbox.w, 0.5);
+		ctx.fillRect(textboxCoords.x, textboxCoords.y + node.textbox.height, node.textbox.width, 0.5);
 	}
 }
 
@@ -558,22 +636,22 @@ function generateNodeCoords(node, jointNum)
 
 	if(jointNum == 0)
 	{
-		center.y -= node.boundbox.h / 2;
+		center.y -= node.boundbox.height / 2;
 		angle += 180;
 	}
 	if(jointNum == 1)
 	{
-		center.x += node.boundbox.w / 2;
+		center.x += node.boundbox.width / 2;
 		angle -= 90;
 	}
 	if(jointNum == 2)
 	{
-		center.y += node.boundbox.h / 2;
+		center.y += node.boundbox.height / 2;
 		angle -= 0;
 	}
 	if(jointNum == 3)
 	{
-		center.x -= node.boundbox.w / 2;
+		center.x -= node.boundbox.width / 2;
 		angle += 90;
 	}
 	
@@ -701,46 +779,52 @@ function rename(node, auto)
 function renameAreaSet(node)
 {
 	let point = def({x: node.x, y: node.y});
-	let rect = {w: 0, h: 0};
+	let rect = {width: 0, height: 0};
 	
 	if(node.parent === undefined)
 	{
 		// Root elem
-		rect.w = node.boundbox.w + 2;
-		rect.h = node.boundbox.h + 2;
+		rect.width = node.boundbox.width + 2;
+		rect.height = node.boundbox.height + 2;
 		
-		point.x -= rect.w / 2;
-		point.y -= rect.h / 2;
+		point.x -= rect.width / 2;
+		point.y -= rect.height / 2;
 	}
 	else
 	{
-		if(node.textbox.w > node.textbox.minWidth)
+		point = def({x: node.textbox.x, y: node.textbox.y});
+		point.x -= 25 / 2;
+		point.y -= 15 / 2;
+
+		if(node.textbox.width > node.textbox.minWidth)
 		{
-			rect.w = node.textbox.w + 25;
+			rect.width = node.textbox.width + 25;
 		}
 		else
 		{
-			rect.w = node.textbox.minWidth + 25;
+			rect.width = node.textbox.minWidth + 25;
+
+			if(node.textbox.x < node.x)
+			{
+				point.x += node.textbox.width - node.textbox.minWidth;
+			}
 		}
 
-		if(node.textbox.w > node.textbox.minHeight)
+		if(node.textbox.height > node.textbox.minHeight)
 		{
-			rect.h = node.textbox.h + 15;
+			rect.height = node.textbox.height + 15;
 		}
 		else
 		{
-			rect.h = node.textbox.minHeight + 15;
+			rect.height = node.textbox.minHeight + 15;
 		}
-		
-		point.x = node.textbox.x - 25 / 2;
-		point.y = node.textbox.y - 15 / 2;
 	}
 
 	let renameArea = $('#rename-area');
 	renameArea.style.left = point.x + 'px';
 	renameArea.style.top = point.y + 'px';
-	renameArea.style.width = rect.w + 'px';
-	renameArea.style.height = rect.h + 'px';
+	renameArea.style.width = rect.width + 'px';
+	renameArea.style.height = rect.height + 'px';
 }
 
 function completeRename()
@@ -974,7 +1058,53 @@ function canvasMouseMoved(e)
 	// Drag workspace
 	if(onDrag)
 	{
-		shiftView((x - canvasOffset.x), (y - canvasOffset.y));
+		if(!mindMap.editable)
+		{
+			let newView = {x: mindMap.view.x + x - canvasOffset.x, y: mindMap.view.y + y - canvasOffset.y};
+	
+			let maxPadding = 0;
+			let viewBounds =
+			{
+				left: mindMapBox.x - maxPadding,
+				top: mindMapBox.y - maxPadding,
+				right: mindMapBox.x + mindMapBox.width + maxPadding,
+				bottom: mindMapBox.y + mindMapBox.height + maxPadding
+			};
+
+			let maxSpace = {x: canvas.width / 2, y: canvas.height / 2};
+			
+			// X collision
+			if(newView.x < -(viewBounds.right - maxSpace.x))
+			{
+				mindMap.view.x = -(viewBounds.right - maxSpace.x);
+			}
+			else if(newView.x > -(viewBounds.left + maxSpace.x - canvas.width))
+			{
+				mindMap.view.x = -(viewBounds.left + maxSpace.x - canvas.width);
+			}
+			else
+			{
+				mindMap.view.x = newView.x;
+			}
+
+			// Y collision
+			if(newView.y < -(viewBounds.bottom - maxSpace.y))
+			{
+				mindMap.view.y = -(viewBounds.bottom - maxSpace.y);
+			}
+			else if(newView.y > -(viewBounds.top + maxSpace.y - canvas.height))
+			{
+				mindMap.view.y = -(viewBounds.top + maxSpace.y - canvas.height);
+			}
+			else
+			{
+				mindMap.view.y = newView.y;
+			}
+		}
+		else
+		{
+			shiftView(x - canvasOffset.x, y - canvasOffset.y);
+		}
 
 		canvasOffset.x = x;
 		canvasOffset.y = y;
@@ -1074,7 +1204,7 @@ function canvasMouseMoved(e)
 function canvasMouseDowned(e)
 {
 	if(onLoading){return;}
-	if(!mindMap.editable || (renameMode && !renameAuto)){return;}
+	if(renameMode && !renameAuto){return;}
 	
 	let x = e.offsetX;
 	let y = e.offsetY;
@@ -1087,57 +1217,53 @@ function canvasMouseDowned(e)
 	if(e.which == 3){return;}
 	
 	if(dragWait || dragWaitWorkspace){return;}
-	
-	let onWorkspace = true;
-	
-	for(let i in mindMap.nodes)
+
+	if(mindMap.editable)
 	{
-		if(mindMap.nodes[i].parent === undefined)
+		for(let i in mindMap.nodes)
 		{
-			// Root elem
-			if(isOverRoot(e, mindMap.nodes[i]) || isOverRootJoint(e, mindMap.nodes[i]) > -1)
+			if(mindMap.nodes[i].parent === undefined)
 			{
-				if(dragState == 1)
+				// Root elem
+				if(isOverRoot(e, mindMap.nodes[i]) || isOverRootJoint(e, mindMap.nodes[i]) > -1)
 				{
-					initDragElem(mindMap.nodes[i]);
-				}
-				
-				onWorkspace = false;
-				
-				return;
-			}
-		}
-		else
-		{
-			// Over node ("+")
-			if(isOverNode(e, mindMap.nodes[i]))
-			{
-				onWorkspace = false;
-				
-				if((dragState == 1)||(dragState == 2))
-				{
-					
-					if(dragState !== 2)
+					if(dragState == 1)
 					{
 						initDragElem(mindMap.nodes[i]);
 					}
+					
+					return;
+				}
+			}
+			else
+			{
+				// Over node ("+")
+				if(isOverNode(e, mindMap.nodes[i]))
+				{
+					if((dragState == 1 || dragState == 2))
+					{
+						
+						if(dragState != 2)
+						{
+							initDragElem(mindMap.nodes[i]);
+						}
+
+						return;
+					}
+				}
+				
+				// Over Node text (label)
+				if(isOverNodeText(e, mindMap.nodes[i]))
+				{
+					initDragElem(mindMap.nodes[i]);
 
 					return;
 				}
 			}
-			
-			// Over Node text (label)
-			if(isOverNodeText(e, mindMap.nodes[i]))
-			{
-				initDragElem(mindMap.nodes[i]);
-				onWorkspace = false;
-				
-				return;
-			}
 		}
 	}
 		
-	if((e.which == 1)&&(onWorkspace))
+	if(e.which == 1 && mindMap.view.moveable)
 	{
 		initDragWorkspace();
 
@@ -1388,7 +1514,7 @@ function loadMindMap(file, name)
 	}
 	else
 	{
-		console.info(file);
+		if(DEBUG){console.info(file);}
 		centerOfView.x = file['mindMap'][0].x;
 		centerOfView.y = file['mindMap'][0].y;
 	}
@@ -1432,24 +1558,24 @@ function renameAreaMouseOver()
 
 function isOverNodeText(event, node)
 {
-	let cursor = {x:event.offsetX, y:event.offsetY};
+	let cursor = undef({x: event.offsetX, y: event.offsetY});;
 	let textbox = node.textbox;
 
-	return ( (cursor.x>node.textbox.x)&&(cursor.x<node.textbox.x+node.textbox.w)&&(cursor.y>node.textbox.y)&&(cursor.y<node.textbox.y+node.textbox.h) );
+	return ( (cursor.x > node.textbox.x)&&(cursor.x < node.textbox.x + node.textbox.width)&&(cursor.y > node.textbox.y)&&(cursor.y < node.textbox.y + node.textbox.height) );
 }
 
 function isOverNode(event, node)
 {
-	let cursor = undef({x:event.offsetX, y:event.offsetY});
+	let cursor = undef({x: event.offsetX, y: event.offsetY});
 	
-	return ( Math.pow(cursor.x-node.x, 2) + Math.pow(cursor.y-node.y, 2) <= Math.pow( 20, 2 ) );
+	return ( Math.pow(cursor.x - node.x, 2) + Math.pow(cursor.y - node.y, 2) <= Math.pow( 20, 2 ) );
 }
 
 function isOverRoot(event, node)
 {
-	let cursor = undef({x:event.offsetX, y:event.offsetY});
+	let cursor = undef({x: event.offsetX, y: event.offsetY});
 	
-	return ( (cursor.x>node.x-node.boundbox.w/2)&&(cursor.x<node.x+node.boundbox.w/2)&&(cursor.y>node.y-node.boundbox.h/2)&&(cursor.y<node.y+node.boundbox.h/2) );
+	return ( (cursor.x > node.x - node.boundbox.width / 2)&&(cursor.x < node.x + node.boundbox.width / 2)&&(cursor.y > node.y - node.boundbox.height / 2)&&(cursor.y < node.y + node.boundbox.height / 2) );
 }
 
 function isOverRootJoint(event, node)
@@ -1462,17 +1588,17 @@ function isOverRootJoint(event, node)
 
 	let cursorPoint = undef({x:event.offsetX, y:event.offsetY});
 	
-	if(isOverCircle(node.x, node.y - node.boundbox.h/2, 20, cursorPoint)){return 0;}
-	if(isOverCircle(node.x + node.boundbox.w/2, node.y, 20, cursorPoint)){return 1;}
-	if(isOverCircle(node.x, node.y + node.boundbox.h/2, 20, cursorPoint)){return 2;}
-	if(isOverCircle(node.x - node.boundbox.w/2, node.y, 20, cursorPoint)){return 3;}
+	if(isOverCircle(node.x, node.y - node.boundbox.height/2, 20, cursorPoint)){return 0;}
+	if(isOverCircle(node.x + node.boundbox.width/2, node.y, 20, cursorPoint)){return 1;}
+	if(isOverCircle(node.x, node.y + node.boundbox.height/2, 20, cursorPoint)){return 2;}
+	if(isOverCircle(node.x - node.boundbox.width/2, node.y, 20, cursorPoint)){return 3;}
 	
 	return -1;
 }
 
 function def(point)
 {
-	// Point {x,y}
+	// Point {x, y}
 	// Coords global --> canvas
 	
 	let res = {};
@@ -1512,23 +1638,18 @@ function setView(x, y)
 function setViewOnCenterOfWeight()
 {
 	if(mindMap.nodes.flat().length == 0){return;} 
-
-	let min = {left:Infinity, top:Infinity, right:0, bottom:0};
-
-	for(let i in mindMap.nodes)
+	
+	// Mindmap boundbox > canvas
+	if(mindMapBox.width + bufferOfView > canvas.width || mindMapBox.height + bufferOfView > canvas.height)
 	{
-		let x = mindMap.nodes[i].x;
-		let y = mindMap.nodes[i].y;
-
-		if(x < min.left){min.left = x;}
-		if(x > min.right){min.right = x;}
-		if(y < min.top){min.top = y;}
-		if(y > min.bottom){min.bottom = y;}
+		setView(canvas.width / 2 - mindMap.nodes[0].x, canvas.height / 2 - mindMap.nodes[0].y);
+		mindMap.view.moveable = true;
 	}
-
-	let c = {x:(min.right+min.left)/2, y:(min.bottom+min.top)/2};
-
-	setView(canvas.width/2-c.x, canvas.height/2-c.y);
+	else
+	{
+		setView(-(mindMapBox.x + mindMapBox.width / 2 - canvas.width / 2), -(mindMapBox.y + mindMapBox.height / 2 - canvas.height / 2));
+		mindMap.view.moveable = false;
+	}
 }
 
 function getCenterOfView(mindMap)
@@ -1694,12 +1815,13 @@ function selectMindMap(num)
 		tabs.changeTab(tabs.tabs[num]);
 	}
 
+	checkBounds();
+
 	if(num == 'start' || num == 'help')
 	{
 		setViewOnCenterOfWeight();
 	}
 
-	checkBounds();
 	draw(mindMap);
 }
 

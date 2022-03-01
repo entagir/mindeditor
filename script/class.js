@@ -9,7 +9,7 @@ class MindMap
 	{
 		this.nodes = [];
 		this.editable = true;
-		this.view = {x:0 , y:0};
+		this.view = {x: 0 , y: 0, moveable: true};
 
 		if(source)
 		{
@@ -49,8 +49,6 @@ class MindMap
 		else
 		{
 			let root = new Node(x, y, name);
-			root.boundbox.w = 150;
-			root.boundbox.h = 60;
 
 			if(color)
 			{
