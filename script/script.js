@@ -15,7 +15,7 @@ let mindMap;
 let mindMapNum = 0;
 
 let onDrag = false;
-let dragState = 0; // 0,1,2
+let dragState = 0; // 0, 1, 2
 let draggedElem;
 let dragTimer;
 let dragEnd = false;
