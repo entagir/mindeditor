@@ -98,6 +98,7 @@ function init()
 	canvas.addEventListener('mouseover', canvasMouseMoved);
 	canvas.addEventListener('mousedown', canvasMouseDowned);
 	canvas.addEventListener('mouseup', canvasMouseUped);
+	canvas.addEventListener('mouseleave', canvasMouseLeaved);
 	canvas.addEventListener('dblclick', canvasDblClicked);
 	canvas.addEventListener('contextmenu', canvasContexted);
 	
@@ -134,6 +135,7 @@ async function loadFromUrl(url)
 {
 	let res = await fetch(url);
 	let json = await res.json();
+
 	if(DEBUG){console.info('Loaded: ' + url);}
 
 	return json;
@@ -836,6 +838,41 @@ function completeRename()
 	checkBounds();
 }
 
+function completeDrag(e, reset)
+{
+	clearTimeout(dragTimer);
+	dragWait = false;
+	dragWaitWorkspace = false;
+
+	if(onDrag)
+	{
+		onDrag = false;
+
+		canvasMouseMoved(e);
+
+		return;
+	}
+	
+	if(dragState == 1 || dragState == 2)
+	{
+		if(reset)
+		{
+			resetLastActiveNode();
+			dragState = 0;
+			canvas.style.cursor = 'grab';
+			draw(mindMap);
+		}
+		else
+		{
+			dragState = 1;
+			canvas.style.cursor = 'pointer';
+			draw(mindMap);
+		}
+
+		return;
+	}
+}
+
 function deleteSelectedNode()
 {
 	lastActiveNode = -1;
@@ -1059,14 +1096,13 @@ function canvasMouseMoved(e)
 		if(!mindMap.editable)
 		{
 			let newView = {x: mindMap.view.x + x - canvasOffset.x, y: mindMap.view.y + y - canvasOffset.y};
-	
-			let maxPadding = 0;
+
 			let viewBounds =
 			{
-				left: mindMapBox.x - maxPadding,
-				top: mindMapBox.y - maxPadding,
-				right: mindMapBox.x + mindMapBox.width + maxPadding,
-				bottom: mindMapBox.y + mindMapBox.height + maxPadding
+				left: mindMapBox.x,
+				top: mindMapBox.y,
+				right: mindMapBox.x + mindMapBox.width,
+				bottom: mindMapBox.y + mindMapBox.height
 			};
 
 			let maxSpace = {x: canvas.width / 2, y: canvas.height / 2};
@@ -1107,7 +1143,6 @@ function canvasMouseMoved(e)
 		canvasOffset.x = x;
 		canvasOffset.y = y;
 
-		checkBounds();
 		draw(mindMap);
 
 		if(renameMode)
@@ -1121,12 +1156,12 @@ function canvasMouseMoved(e)
 	// Drag object
 	if(dragState == 2)
 	{
-		let cursor = undef({x:e.offsetX, y:e.offsetY});
+		let cursor = undef({x: e.offsetX, y: e.offsetY});
 
-		let ox = draggedElem.x - (cursor.x - cursorOffset.x);
-		let oy = draggedElem.y - (cursor.y - cursorOffset.y);
+		let elemOffsetX = draggedElem.x - (cursor.x - cursorOffset.x);
+		let elemOffsetY = draggedElem.y - (cursor.y - cursorOffset.y);
 		
-		moveNode(draggedElem, ox, oy);
+		moveNode(draggedElem, elemOffsetX, elemOffsetY);
 
 		checkBounds();
 		draw(mindMap);
@@ -1298,33 +1333,13 @@ function canvasMouseDowned(e)
 function canvasMouseUped(e)
 {
 	if(onLoading){return;}
-	
-	let x = e.offsetX;
-	let y = e.offsetY;
 
-	clearTimeout(dragTimer);
-	dragWait = false;
-	dragWaitWorkspace = false;
+	completeDrag(e);
+}
 
-	if(onDrag)
-	{
-		onDrag = false;
-
-		canvas.style.cursor = 'grab';
-		
-		canvasMouseMoved(e);
-		
-		return;
-	}
-	
-	if((dragState == 1)||(dragState == 2))
-	{
-		dragState = 1;
-		canvas.style.cursor = 'pointer';
-		draw(mindMap);
-		
-		return;
-	}
+function canvasMouseLeaved(e)
+{
+	completeDrag(e, true);
 }
 
 function canvasDblClicked(e)
