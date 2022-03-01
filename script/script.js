@@ -69,8 +69,9 @@ window.onresize = function()
 
 	if(!mindMap.editable)
 	{
-		checkBounds();
-		setViewOnCenterOfWeight();
+		setView();
+
+		return;
 	}
 	
 	draw(mindMap);
@@ -217,9 +218,6 @@ async function initFiles()
 			showDialog('');
 
 			addMindMap(i, localSamples[i]['mindMap']);
-
-			checkBounds();
-			setViewOnCenterOfWeight();
 		});
 		fileList.appendChild(button);
 	}
@@ -1505,21 +1503,7 @@ function loadMindMap(file, name)
 {
 	addMindMap(name, file['mindMap']);
 
-	// Set view
-	let centerOfView = {x: 0, y: 0};
-
-	if(file['editorSetings'] && file['editorSetings']['centerOfView'])
-	{
-		centerOfView = file['editorSetings']['centerOfView'];
-	}
-	else
-	{
-		if(DEBUG){console.info(file);}
-		centerOfView.x = file['mindMap'][0].x;
-		centerOfView.y = file['mindMap'][0].y;
-	}
-
-	setView(canvas.width / 2 - centerOfView.x, canvas.height / 2 - centerOfView.y);
+	setView(file);
 }
 
 function renameAreaInputed()
@@ -1626,30 +1610,40 @@ function shiftView(x, y)
 	mindMap.view.y += y;
 }
 
-function setView(x, y)
+function setView(file)
 {
-	mindMap.view.x = x;
-	mindMap.view.y = y;
+	// Set view automatically
 
-	checkBounds();
-	draw(mindMap);
-}
-
-function setViewOnCenterOfWeight()
-{
 	if(mindMap.nodes.flat().length == 0){return;} 
-	
-	// Mindmap boundbox > canvas
-	if(mindMapBox.width + bufferOfView > canvas.width || mindMapBox.height + bufferOfView > canvas.height)
+
+	if(file && file['editorSetings'] && file['editorSetings']['centerOfView'])
 	{
-		setView(canvas.width / 2 - mindMap.nodes[0].x, canvas.height / 2 - mindMap.nodes[0].y);
-		mindMap.view.moveable = true;
+		// If exist settings of view in file
+		// Set view from file
+		let centerOfView = file['editorSetings']['centerOfView'];
+
+		mindMap.view.x = canvas.width / 2 - centerOfView.x;
+		mindMap.view.y = canvas.height / 2 - centerOfView.y;
+	}
+	else if(mindMapBox.width + bufferOfView > canvas.width || mindMapBox.height + bufferOfView > canvas.height)
+	{
+		// If mind map boundbox > canvas
+		// Set view on center of first root elem
+		mindMap.view.x = canvas.width / 2 - mindMap.nodes[0].x;
+		mindMap.view.y = canvas.height / 2 - mindMap.nodes[0].y;
+
+		if(!mindMap.editable){mindMap.view.moveable = true;}
 	}
 	else
 	{
-		setView(-(mindMapBox.x + mindMapBox.width / 2 - canvas.width / 2), -(mindMapBox.y + mindMapBox.height / 2 - canvas.height / 2));
-		mindMap.view.moveable = false;
+		// Set view on center of mind map boundbox
+		mindMap.view.x = -(mindMapBox.x + mindMapBox.width / 2 - canvas.width / 2);
+		mindMap.view.y = -(mindMapBox.y + mindMapBox.height / 2 - canvas.height / 2);
+
+		if(!mindMap.editable){mindMap.view.moveable = false;}
 	}
+
+	draw(mindMap);
 }
 
 function getCenterOfView(mindMap)
@@ -1677,7 +1671,7 @@ function newFile()
 	addMindMap();
 	// Check canvas width
 	mindMap.add_node(canvas.width/2, canvas.height/2);
-
+	// Need refactoring
 	checkBounds();
 	draw(mindMap);
 }
@@ -1819,10 +1813,12 @@ function selectMindMap(num)
 
 	if(num == 'start' || num == 'help')
 	{
-		setViewOnCenterOfWeight();
+		setView();
 	}
-
-	draw(mindMap);
+	else
+	{
+		draw(mindMap);
+	}
 }
 
 function loadTempMaps()
