@@ -91,6 +91,8 @@ function init()
 	initColorsDialog(colors.branches);
 	initFiles();
 
+	document.body.addEventListener('mouseleave', canvasMouseLeaved);
+
 	canvas = $('#canvas'); 
 	
 	canvas.addEventListener('click', canvasClicked);
@@ -98,7 +100,6 @@ function init()
 	canvas.addEventListener('mouseover', canvasMouseMoved);
 	canvas.addEventListener('mousedown', canvasMouseDowned);
 	canvas.addEventListener('mouseup', canvasMouseUped);
-	canvas.addEventListener('mouseleave', canvasMouseLeaved);
 	canvas.addEventListener('dblclick', canvasDblClicked);
 	canvas.addEventListener('contextmenu', canvasContexted);
 	
@@ -229,7 +230,7 @@ async function initFiles()
 
 function checkBounds()
 {
-	console.info('check');
+	if(DEBUG){console.info('check');}
 
 	// Check nodes and titles width and height
 
@@ -237,9 +238,11 @@ function checkBounds()
 
 	for(let i in mindMap.nodes)
 	{
+		let node = mindMap.nodes[i];
+
 		if(mindMap.nodes[i].parent === undefined)
 		{
-			let node = mindMap.nodes[i];
+			
 
 			let text = placeholder;
 			drawRootText(ctx, node);
@@ -278,7 +281,51 @@ function checkBounds()
 		}
 		else
 		{
-			let node = mindMap.nodes[i];
+			if(node.parent.parent === undefined)
+			{
+				let jointsCoords = [];
+				jointsCoords[0] = {x: node.parent.x, y: node.parent.y - node.parent.boundbox.height / 2};
+				jointsCoords[1] = {x: node.parent.x + node.parent.boundbox.width / 2, y: node.parent.y};
+				jointsCoords[2] = {x: node.parent.x, y: node.parent.y + node.parent.boundbox.height / 2};
+				jointsCoords[3] = {x: node.parent.x - node.parent.boundbox.width / 2, y: node.parent.y};
+
+				if(node.joint == 0)
+				{
+					if(node.y > jointsCoords[0].y)
+					{
+						if(node.x < jointsCoords[3].x){node.joint = 3;}
+						if(node.x > jointsCoords[1].x){node.joint = 1;}
+						if(node.y > jointsCoords[2].y){node.joint = 2;}
+					}
+				}
+				else if(node.joint == 1)
+				{
+					if(node.x < jointsCoords[1].x)
+					{
+						if(node.y > jointsCoords[2].y){node.joint = 2;}
+						if(node.y < jointsCoords[0].y){node.joint = 0;}
+						if(node.x < jointsCoords[3].x){node.joint = 3;}
+					}
+				}
+				else if(node.joint == 2)
+				{
+					if(node.y < jointsCoords[2].y)
+					{
+						if(node.x < jointsCoords[3].x){node.joint = 3;}
+						if(node.y < jointsCoords[0].y){node.joint = 0;}
+						if(node.x > jointsCoords[1].x){node.joint = 1;}
+					}
+				}
+				else
+				{
+					if(node.x > jointsCoords[3].x)
+					{
+						if(node.y < jointsCoords[0].y){node.joint = 0;}
+						if(node.x > jointsCoords[1].x){node.joint = 1;}
+						if(node.y > jointsCoords[2].y){node.joint = 2;}
+					}
+				}
+			}
 
 			if(!node.textbox.minWidth) // Or changed font
 			{
