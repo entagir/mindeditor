@@ -24,8 +24,16 @@ class MindMap
 		if(parent)
 		{
 			let node = new Node(x, y, name, joint, parent);
+			if(parent.parent)
+			{
+				node.dir = parent.dir;
+			}
+			else
+			{
+				if(joint == 3){node.dir = 'left';}
+			}
 
-			if (color)
+			if(color)
 			{
 				node.color = color;
 			}
@@ -146,6 +154,7 @@ class Node
 		this.parent = parent;
 		this.childs = [];
 		this.joint = joint;
+		this.dir = 'right';
 		this.state = 0;
 		this.joint_state = -1;
 		this.textbox = {};

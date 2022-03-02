@@ -281,6 +281,7 @@ function checkBounds()
 		}
 		else
 		{
+			// Check joint
 			if(node.parent.parent === undefined)
 			{
 				let jointsCoords = [];
@@ -327,6 +328,27 @@ function checkBounds()
 				}
 			}
 
+			// Check node direction
+			if(node.dir == 'right' && node.parent.x > node.x)
+			{
+				node.dir = 'left';
+
+				for(let i in node.childs)
+				{
+					changeNodeDir(node.childs[i]);
+				}
+			}
+			else if(node.dir == 'left' && node.parent.x <= node.x)
+			{
+				node.dir = 'right';
+
+				for(let i in node.childs)
+				{
+					changeNodeDir(node.childs[i]);
+				}
+			}
+
+			// Check node text
 			if(!node.textbox.minWidth) // Or changed font
 			{
 				let text = placeholder;
@@ -962,6 +984,27 @@ function moveNode(node, offsetX, offsetY)
 	for(let i in node.childs)
 	{
 		moveNode(node.childs[i], offsetX, offsetY);
+	}
+}
+
+function changeNodeDir(node)
+{
+	let offset = Math.abs(node.x - node.parent.x) * 2;
+
+	if(node.dir == 'right')
+	{
+		moveNode(node, offset, 0);
+		node.dir = 'left';
+	}
+	else
+	{
+		moveNode(node, -offset, 0);
+		node.dir = 'right';
+	}
+
+	for(let i in node.childs)
+	{
+		changeNodeDir(node.childs[i]);
 	}
 }
 
