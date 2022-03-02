@@ -1444,9 +1444,9 @@ function loadFiles(files)
 function showContextMenu(context, x, y)
 {
 	let allContext = document.querySelectorAll('.context-menu');
-	for(let i=0;i<allContext.length;i++)
+	for(let i of allContext)
 	{
-		allContext[i].style.display = 'none';
+		i.classList.toggle('hidden', true);
 	}
 
 	if(!context)
@@ -1463,17 +1463,35 @@ function showContextMenu(context, x, y)
 	contextCoords.y = y;
 	
 	let contextDomElem;
-	if(context == 'canvas'){contextDomElem=$('#context-canvas');}
-	if(context == 'branch'){contextDomElem=$('#context-branch');}
+	if(context == 'canvas'){contextDomElem = $('#context-canvas');}
+	if(context == 'branch'){contextDomElem = $('#context-branch');}
 	if(context == 'colorpicker')
 	{
-		contextDomElem=$('#context-color-picker');
+		contextDomElem = $('#context-color-picker');
 		$('#color-picker').value = contextElem.color;
 	}
 
-	contextDomElem.style.top = y + 'px';
-	contextDomElem.style.left = x + 'px';
-	contextDomElem.style.display = 'block';
+	let contextRight = x + contextDomElem.clientWidth + bufferOfView;
+	if(contextRight > canvas.clientWidth)
+	{
+		contextDomElem.style.left = x - contextDomElem.clientWidth + 'px';
+	}
+	else
+	{
+		contextDomElem.style.left = x + 'px';
+	}
+
+	let contextBottom = y + contextDomElem.clientHeight + bufferOfView;
+	if(contextBottom > canvas.clientHeight)
+	{
+		contextDomElem.style.top = y - contextDomElem.clientHeight + 'px';
+	}
+	else
+	{
+		contextDomElem.style.top = y + 'px';
+	}
+
+	contextDomElem.classList.toggle('hidden', false);
 
 	contextUp = true;
 }
