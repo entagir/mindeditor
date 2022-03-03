@@ -245,6 +245,13 @@ grid-template-columns: auto auto;
 grid-gap: 0.5em;
 }
 
+#dialog-save > form
+{
+display: grid;
+grid-gap: 0.5em;
+text-align: center;
+}
+
 #file-list-samples
 {
 display: grid;
