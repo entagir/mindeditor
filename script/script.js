@@ -696,122 +696,119 @@ function drawSplash(ctx)
 	ctx.fillText(splashText, canvas.width / 2, canvas.height / 2);
 }
 
-function generateNodeCoords(node, jointNum)
+function calculateNodeCoords(node, jointNum)
 {
 	let center = {x: node.x, y: node.y}; // Center of circle
 	let radius = 160; // Radius of circle
 	
-	let angle = 0;
+	let nodeStartAngle = 0;
 
-	if(jointNum == 0)
+	if(node.parent)
 	{
-		center.y -= node.boundbox.height / 2;
-		angle += 180;
+		// Node
+		if(node.dir == 'left'){nodeStartAngle += 90;}
+		else{nodeStartAngle -= 90;}
 	}
-	if(jointNum == 1)
+	else
 	{
-		center.x += node.boundbox.width / 2;
-		angle -= 90;
-	}
-	if(jointNum == 2)
-	{
-		center.y += node.boundbox.height / 2;
-		angle -= 0;
-	}
-	if(jointNum == 3)
-	{
-		center.x -= node.boundbox.width / 2;
-		angle += 90;
+		// Root
+		if(jointNum == 0)
+		{
+			center.y -= node.boundbox.height / 2;
+			nodeStartAngle += 180;
+		}
+		if(jointNum == 1)
+		{
+			center.x += node.boundbox.width / 2;
+			nodeStartAngle -= 90;
+		}
+		if(jointNum == 2)
+		{
+			center.y += node.boundbox.height / 2;
+			nodeStartAngle -= 0;
+		}
+		if(jointNum == 3)
+		{
+			center.x -= node.boundbox.width / 2;
+			nodeStartAngle += 90;
+		}
 	}
 	
-	if(node.parent){center = {x: node.x, y: node.y};}
-	
-	let currentAngle = 90;
+	let currentSectorAngle = 90;
 	
 	while(true)
 	{
-		let angle_start_c = 90 - currentAngle / 2;
-		let angle_offset = 0;
+		let currentStartAngle = 90 - currentSectorAngle / 2;
+		let currentStartAngleOffset = 0;
 		
-		let sym = 0;
+		let mirror = -1;
 
 		while(true)
 		{
-			let angle_start = angle_start_c;
-			if(sym == 0)
-			{
-				if((jointNum == 0)||(jointNum == 1)){angle_start -= angle_offset;}
-				else{angle_start += angle_offset;}
-				sym = 1;
-			}
-			else
-			{
-				if((jointNum == 0) || (jointNum == 1)){angle_start += angle_offset;}
-				else{angle_start -= angle_offset;}
-				sym = 0;
-			}
+			// Check exist node in current sector
+
+			let resultStartAngle = currentStartAngle;
+
+			if(jointNum == 0 || jointNum == 1){resultStartAngle += currentStartAngleOffset * mirror;}
+			else{resultStartAngle -= currentStartAngleOffset * mirror;}
 			
-			let top = radius * Math.sin((angle + angle_start) * Math.PI/180) + center.y;
-			let bottom = radius * Math.sin((angle + angle_start + currentAngle) * Math.PI/180) + center.y;
-			let left = radius * Math.cos((angle + angle_start) * Math.PI/180) + center.x;
-			let right = radius * Math.cos((angle + angle_start + currentAngle) * Math.PI/180) + center.x;
-			
-			if((jointNum == 2) || (jointNum == 3))
-			{
-				let temp = top;
-				top = bottom;
-				bottom = temp;
-				
-				temp = left;
-				left = right;
-				right = temp;
-			}
-			
-			let flag = false;
+			mirror *= -1; // Reverse mirror
+
+			let left = radius * Math.cos((nodeStartAngle + resultStartAngle) * Math.PI / 180) + center.x;
+			let right = radius * Math.cos((nodeStartAngle + resultStartAngle + currentSectorAngle) * Math.PI / 180) + center.x;
+			let top = radius * Math.sin((nodeStartAngle + resultStartAngle) * Math.PI / 180) + center.y;
+			let bottom = radius * Math.sin((nodeStartAngle + resultStartAngle + currentSectorAngle) * Math.PI / 180) + center.y;
+
+			let find = false;
 			
 			for(let i in node.childs)
 			{
-				if(node.childs[i].joint == jointNum)
+				// If current connector
+				if(node.parent || node.childs[i].joint == jointNum)
 				{
-					if((jointNum == 1) || (jointNum == 3))
+					if(!node.parent && jointNum == 0)
 					{
-						if((node.childs[i].y > top) && (node.childs[i].y < bottom))
-						{
-							flag = true;
-							break;
-						}
+						if(node.childs[i].x > left && node.childs[i].x < right){find = true;}
 					}
-					else
+					if(!node.parent && jointNum == 2)
 					{
-						if((node.childs[i].x > left) && (node.childs[i].x < right))
-						{
-							flag = true;
-							break;
-						}
+						if(node.childs[i].x > right && node.childs[i].x < left){find = true;}
 					}
+
+					if(!node.parent && jointNum == 1 || node.parent && node.dir == 'right')
+					{
+						if(node.childs[i].y > top && node.childs[i].y < bottom){find = true;}
+					}
+					if(!node.parent && jointNum == 3 || node.parent && node.dir == 'left')
+					{
+						if(node.childs[i].y > bottom && node.childs[i].y < top){find = true;}
+					}
+
+					if(find){break;}
 				}
 			}
 			
-			if(!flag)
+			if(!find)
 			{
-				let angle_new = (angle + angle_start + currentAngle/2) * Math.PI/180;
+				// Calculate node coords in middle of current sector
+				let newNodeAngle = (nodeStartAngle + resultStartAngle + currentSectorAngle / 2) * Math.PI / 180;
 			
-				let out_coords = {x:0, y:0};
-				out_coords.x = radius * Math.cos(angle_new) + center.x;
-				out_coords.y = radius * Math.sin(angle_new) + center.y;
+				let newNodeCoords = {x: 0, y: 0};
+				newNodeCoords.x = radius * Math.cos(newNodeAngle) + center.x;
+				newNodeCoords.y = radius * Math.sin(newNodeAngle) + center.y;
 				
-				return out_coords;
+				return newNodeCoords;
 			}
 			
-			if(sym == 0)
+			if(mirror == -1)
 			{
-				angle_offset += currentAngle/2;
+				currentStartAngleOffset += currentSectorAngle / 2;
 				
-				if(angle_start_c - angle_offset < 0){break;}
+				if(currentStartAngle - currentStartAngleOffset < 0){break;}
 			}
 		}
 		
-		currentAngle /= 2;
+		currentSectorAngle /= 2;
 	}
 }
 
@@ -1049,7 +1046,7 @@ function canvasClicked(e)
 				if(jointNum != -1)
 				{
 					// Add branch
-					let coords = generateNodeCoords(mindMap.nodes[i], jointNum);
+					let coords = calculateNodeCoords(mindMap.nodes[i], jointNum);
 					let addedNode = mindMap.add_node(coords.x, coords.y, '', jointNum, mindMap.nodes[i]);
 
 					checkBounds();
@@ -1074,8 +1071,8 @@ function canvasClicked(e)
 			if(mindMap.editable && !renamed && isOverNode(e, mindMap.nodes[i]))
 			{
 				// Add sub-branch
-				let coords = generateNodeCoords( mindMap.nodes[i], mindMap.nodes[i].joint);
-				let addedNode = mindMap.add_node(coords.x, coords.y, '', mindMap.nodes[i].joint, mindMap.nodes[i]);
+				let coords = calculateNodeCoords( mindMap.nodes[i]);
+				let addedNode = mindMap.add_node(coords.x, coords.y, '', undefined, mindMap.nodes[i]);
 				
 				checkBounds();
 				draw(mindMap);
