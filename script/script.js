@@ -77,8 +77,10 @@ window.onresize = function()
 	draw(mindMap);
 }
 
-function init()
+async function init()
 {
+	$('#loading-animation').classList.toggle('hidden', false);
+
 	let menu = Tlaloc.menu('menu');
 	menu.addItem('MindEditor', function(){openMenu();});
 	menu.addItem('New', function(){newFile();});
@@ -89,7 +91,7 @@ function init()
 	tabs = Tlaloc.tabs('tabs');
 
 	initColorsDialog(colors.branches);
-	initFiles();
+	let filesPromise = initFiles();
 
 	document.body.addEventListener('mouseleave', canvasMouseLeaved);
 
@@ -130,6 +132,9 @@ function init()
 	}
 
 	loadTempMaps();
+	await filesPromise;
+
+	$('#loading-animation').classList.toggle('hidden', true);
 }
 
 async function loadFromUrl(url)
