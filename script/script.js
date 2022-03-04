@@ -193,15 +193,20 @@ function initColorsDialog(colors)
 
 async function initFiles()
 {
+	// Load system files from localStorage or API
+	let localFilesPromises = [];
+
 	let localSamplesList = [];
 	localSamplesList.push({name: 'Palms', url: 'https://mind.entagir.ru/static/samples/Palms.json', version: 0});
 	localSamplesList.push({name: 'MindEditorFeatures', url: 'https://mind.entagir.ru/static/samples/MindEditor%20Features.json', version: 0});
-	await loadLocalFiles(localSamples, 'localSamples', localSamplesList);
+	localFilesPromises.push(loadLocalFiles(localSamples, 'localSamples', localSamplesList));
 
 	let systemFilesList = [];
 	systemFilesList.push({name: 'Menu', url: 'https://mind.entagir.ru/static/system/Menu.json', version: 0});
 	systemFilesList.push({name: 'Help', url: 'https://mind.entagir.ru/static/system/Help.json', version: 0});
-	await loadLocalFiles(systemFiles, 'systemFiles', systemFilesList);
+	localFilesPromises.push(loadLocalFiles(systemFiles, 'systemFiles', systemFilesList));
+
+	await Promise.all(localFilesPromises);
 
 	// Menu map init
 	mindMaps['start'] = new MindMap('start', systemFiles['Menu'].mindMap);
