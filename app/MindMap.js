@@ -1,6 +1,3 @@
-// MindEditor
-// Class.js
-
 class MindMap
 {
 	constructor(name, source)

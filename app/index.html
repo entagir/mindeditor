@@ -24,23 +24,23 @@
 			<input id="rename-area" type="text" autocomplete="off">
 			<div id="context-branch" class="context-menu hidden">
 				<div>
-					<button onclick="showContextMenu('colorpicker');">Set color</button>
-					<button onclick="renameSelectedNode();">Rename</button>
-					<button onclick="deleteSelectedNode();">Delete</button>
+					<button id="context-branch__set-color">Set color</button>
+					<button id="context-branch__rename">Rename</button>
+					<button id="context-branch__delete">Delete</button>
 				</div>
 			</div>
 			<div id="context-color-picker" class="context-menu hidden">
 				<div id="colors-cont">
-					<button id="color-picker-but" onclick="$('#color-picker').click();">
-						<input id="color-picker" type="color" onchange="colorPickerChanged();">
+					<button id="context-color-picker__color-picker__button">
+						<input id="color-picker" type="color">
 						...
 					</button>
 				</div>
 			</div>
 			<div id="context-canvas" class="context-menu hidden">
 				<div>
-					<button onclick="openImg();">Open image</button>
-					<button onclick="showDialog('rename');">Rename mindmap</button>
+					<button id="context-canvas__open-image">Open image</button>
+					<button id="context-canvas__rename">Rename mindmap</button>
 				</div>
 			</div>
 
@@ -60,12 +60,12 @@
 		</div>
 		<div id="dialog-save">
 			<form>
-				<a href="" id="downloader" download="mind.json" style="display:none;">mind.json</a>
+				<a href="" id="downloader" download="mind.json">mind.json</a>
 				<div>
 					<input id="input-save" type="text" autocomplete="off">
 					<button id="button-save">Download</button>
 				</div>
-				<div><a href="javascript:void(0);" onclick="openImg();">Open image in new tab</a></div>
+				<div><a id="button-image" href="javascript:void(0);">Open image in new tab</a></div>
 			</form>
 		</div>
 		<div id="dialog-open">

@@ -261,6 +261,11 @@ grid-auto-rows: auto;
 grid-gap: 0.5em;
 }
 
+#downloader
+{
+display:none;
+}
+
 .cssload-container
 {
 position: absolute;
