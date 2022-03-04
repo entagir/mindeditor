@@ -1,12 +1,8 @@
 // Tlaloc.js
 
-"use strict";
-
 let Tlaloc = {};
 
 let T = Tlaloc;
-
-{
 
 Tlaloc.menu = function(name)
 {
@@ -646,4 +642,4 @@ class Dialog
 	}
 }
 
-}
+export {T, Tlaloc};

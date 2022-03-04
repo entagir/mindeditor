@@ -1,7 +1,8 @@
 // MindEditor
 // Script.js
 
-"use strict";
+import {MindMap} from './class'
+import {Tlaloc} from './Tlaloc/script'
 
 let onLoading = true;
 let DEBUG = false;

@@ -1,8 +1,6 @@
 // MindEditor
 // Class.js
 
-"use strict";
-
 class MindMap
 {
 	constructor(name, source)
@@ -162,3 +160,5 @@ class Node
 		this.color = '';
 	}
 }
+
+export {MindMap};
