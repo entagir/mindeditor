@@ -18,7 +18,7 @@ class MindMap
 	{
 		if(parent)
 		{
-			let node = new Node(x, y, name, joint, parent);
+			let node = new Node(x, y, name, joint, parent, color);
 			if(parent.parent)
 			{
 				node.dir = parent.dir;
@@ -26,22 +26,6 @@ class MindMap
 			else
 			{
 				if(joint == 3){node.dir = 'left';}
-			}
-
-			if(color)
-			{
-				node.color = color;
-			}
-			else
-			{
-				if(node.parent.parent)
-				{
-					node.color = parent.color;
-				}
-				else
-				{
-					node.color = colors.branches[randomInteger(0, colors.branches.length-1)];
-				}
 			}
 			
 			this.nodes.push(node);
@@ -51,16 +35,7 @@ class MindMap
 		}
 		else
 		{
-			let root = new Node(x, y, name);
-
-			if(color)
-			{
-				root.color = color;
-			}
-			else
-			{
-				root.color = colors.branches[randomInteger(0, colors.branches.length-1)];
-			}
+			let root = new Node(x, y, name, undefined, undefined, color);
 			
 			this.nodes.push(root);
 
@@ -141,7 +116,7 @@ class MindMap
 
 class Node
 {
-	constructor(x, y, name, joint, parent)
+	constructor(x, y, name, joint, parent, color)
 	{
 		this.x = x;
 		this.y = y;
@@ -154,7 +129,7 @@ class Node
 		this.joint_state = -1;
 		this.textbox = {};
 		this.boundbox = {};
-		this.color = '';
+		this.color = color || '';
 	}
 }
 

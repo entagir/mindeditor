@@ -5,6 +5,8 @@ import './favicon.ico'
 import {MindMap} from './MindMap'
 import {Tlaloc} from './Tlaloc'
 
+import menuJson from './system/Menu.json'
+
 let onLoading = true;
 let DEBUG = false;
 
@@ -45,7 +47,7 @@ let defaultName = 'New mindmap';
 let splashText = 'Use Double Click to add nodes';
 
 let localSamples = {};
-let systemFiles = {};
+let systemFiles = {'Menu': menuJson};
 
 let colors = {};
 colors['baseText'] = '#565656';
@@ -144,6 +146,11 @@ async function init()
 		i.addEventListener('submit', function(e){e.preventDefault();});
 	}
 
+	// Menu map init
+	mindMaps['start'] = new MindMap('start', systemFiles['Menu'].mindMap);
+	mindMaps['start'].editable = false;
+	if(!mindMap){selectMindMap('start');}
+
 	loadTempMaps();
 	await filesPromise;
 
@@ -206,25 +213,19 @@ function initColorsDialog(colors)
 
 async function initFiles()
 {
-	// Load system files from localStorage or API
+	// Load system files from localStorage or server
 	let localFilesPromises = [];
 
 	let localSamplesList = [];
-	localSamplesList.push({name: 'Palms', url: 'https://mind.entagir.ru/static/samples/Palms.json', version: 0});
-	localSamplesList.push({name: 'MindEditorFeatures', url: 'https://mind.entagir.ru/static/samples/MindEditor%20Features.json', version: 0});
+	localSamplesList.push({name: 'Palms', url: 'static/samples/Palms.json', version: 0});
+	localSamplesList.push({name: 'MindEditorFeatures', url: 'static/samples/MindEditor%20Features.json', version: 0});
 	localFilesPromises.push(loadLocalFiles(localSamples, 'localSamples', localSamplesList));
 
 	let systemFilesList = [];
-	systemFilesList.push({name: 'Menu', url: 'https://mind.entagir.ru/static/system/Menu.json', version: 0});
-	systemFilesList.push({name: 'Help', url: 'https://mind.entagir.ru/static/system/Help.json', version: 0});
+	systemFilesList.push({name: 'Help', url: 'static/system/Help.json', version: 0});
 	localFilesPromises.push(loadLocalFiles(systemFiles, 'systemFiles', systemFilesList));
 
 	await Promise.all(localFilesPromises);
-
-	// Menu map init
-	mindMaps['start'] = new MindMap('start', systemFiles['Menu'].mindMap);
-	mindMaps['start'].editable = false;
-	if(!mindMap){selectMindMap('start');}
 
 	// Help map init
 	mindMaps['help'] = new MindMap('help', systemFiles['Help'].mindMap);
@@ -243,7 +244,8 @@ async function initFiles()
 		{
 			showDialog('');
 
-			addMindMap(i, localSamples[i]['mindMap']);
+			loadMindMap(localSamples[i], i);
+
 		});
 		fileList.appendChild(button);
 	}
@@ -265,8 +267,6 @@ function checkBounds()
 
 		if(mindMap.nodes[i].parent === undefined)
 		{
-			
-
 			let text = placeholder;
 			drawRootText(ctx, node);
 
@@ -1070,7 +1070,7 @@ function canvasClicked(e)
 				{
 					// Add branch
 					let coords = calculateNodeCoords(mindMap.nodes[i], jointNum);
-					let addedNode = mindMap.add_node(coords.x, coords.y, '', jointNum, mindMap.nodes[i]);
+					let addedNode = addNode(mindMap, coords.x, coords.y, '', jointNum, mindMap.nodes[i]);
 
 					checkBounds();
 					draw(mindMap);
@@ -1095,7 +1095,7 @@ function canvasClicked(e)
 			{
 				// Add sub-branch
 				let coords = calculateNodeCoords( mindMap.nodes[i]);
-				let addedNode = mindMap.add_node(coords.x, coords.y, '', undefined, mindMap.nodes[i]);
+				let addedNode = addNode(mindMap, coords.x, coords.y, '', undefined, mindMap.nodes[i]);
 				
 				checkBounds();
 				draw(mindMap);
@@ -1493,7 +1493,7 @@ function canvasDblClicked(e)
 	// Double click on canvas
 	
 	let cursor = undef({x: e.offsetX, y: e.offsetY});
-	mindMap.add_node(cursor.x, cursor.y);
+	addNode(mindMap, cursor.x, cursor.y);
 	
 	checkBounds();
 	canvasMouseMoved(e); // Draw
@@ -1813,7 +1813,7 @@ function newFile()
 {
 	addMindMap();
 	// Check canvas width
-	mindMap.add_node(canvas.width/2, canvas.height/2);
+	addNode(mindMap, canvas.width/2, canvas.height/2);
 	// Need refactoring
 	checkBounds();
 	draw(mindMap);
@@ -1927,6 +1927,30 @@ function addMindMap(name, source)
 	});
 
 	selectMindMap(num);
+}
+
+function addNode(mindMap, x, y, name, joint, parent, color)
+{
+	if(!color)
+	{
+		if(parent)
+		{
+			if(parent.parent)
+			{
+				color = parent.color;
+			}
+			else
+			{
+				color = colors.branches[randomInteger(0, colors.branches.length-1)];
+			}
+		}
+		else
+		{
+			color = colors.branches[randomInteger(0, colors.branches.length-1)];
+		}
+	}
+
+	return mindMap.add_node(x, y, name, joint, parent, color);
 }
 
 function selectMindMap(num)
