@@ -126,7 +126,7 @@ async function init()
 	$('#dialogs-cont').addEventListener('mousedown', function(e){if(e.target == this){showDialog();}});
 	$('#button-name').addEventListener('click', renameMap);
 	$('#button-save').addEventListener('click', saveMap);
-    $('#button-save').addEventListener('click', openImg);
+    $('#button-image').addEventListener('click', openImg);
 
     $('#context-branch__set-color').addEventListener('click', function(){showContextMenu('colorpicker');});
     $('#context-branch__rename').addEventListener('click', renameSelectedNode);

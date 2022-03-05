@@ -183,7 +183,7 @@ grid-template-columns: 1fr 1fr 1fr;
 grid-auto-rows: 1fr;
 }
 
-#color-picker-but
+#context-color-picker__color-picker__button
 {
 width: 2.5em;
 height: 2.5em;
@@ -263,7 +263,7 @@ grid-gap: 0.5em;
 
 #downloader
 {
-display:none;
+display: none;
 }
 
 .cssload-container
