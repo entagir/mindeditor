@@ -110,7 +110,7 @@ async function init()
 	canvas.addEventListener('contextmenu', canvasContexted);
 	
 	// canvas.addEventListener('wheel', function(event){  });
-	// document.body.addEventListener('keydown', function(event){  });
+	document.body.addEventListener('keydown', bodyKeyDownHandler);
 	// document.body.addEventListener('keyup', function(event){  });
 
 	canvas.addEventListener('drop', canvasFilesDroped);
@@ -966,7 +966,7 @@ function deleteSelectedNode()
 {
 	lastActiveNode = -1;
 
-	showContextMenu('');
+	showContextMenu();
 
 	mindMap.delete_node(contextElem, true);
 	checkBounds();
@@ -976,7 +976,7 @@ function deleteSelectedNode()
 
 function renameSelectedNode()
 {
-	showContextMenu('');
+	showContextMenu();
 
 	rename(contextElem);
 }
@@ -1035,6 +1035,12 @@ function canvasClicked(e)
 	{
 		dragEnd = false;
 
+		if(contextFlag)
+		{
+			contextFlag = false;
+			canvasMouseMoved(e);
+		}
+
 		return;
 	}
 
@@ -1045,7 +1051,7 @@ function canvasClicked(e)
 		completeRename();
 		canvasMouseMoved(e);
 		
-		renamed = true && !renameAuto;
+		renamed = !renameAuto;
 	}
 
 	if(contextFlag)
@@ -1354,7 +1360,9 @@ function canvasMouseDowned(e)
 	
 	if(contextUp)
 	{
-		showContextMenu('');
+		showContextMenu();
+		contextFlag = true;
+		canvasMouseMoved(e);
 	}
 
 	if(e.which == 3){return;}
@@ -1499,6 +1507,14 @@ function canvasDblClicked(e)
 	canvasMouseMoved(e); // Draw
 }
 
+function bodyKeyDownHandler(e)
+{
+	if(e.key == 'Escape')
+	{
+		showDialog();
+	}
+}
+
 function colorPickerChanged()
 {
 	contextElem.color = $('#color-picker').value;
@@ -1553,6 +1569,8 @@ function loadFiles(files)
 
 function showContextMenu(context, x, y)
 {
+	if(!context && !contextUp){return;}
+
 	let allContext = document.querySelectorAll('.context-menu');
 	for(let i of allContext)
 	{
@@ -1562,7 +1580,6 @@ function showContextMenu(context, x, y)
 	if(!context)
 	{
 		contextUp = false;
-		contextFlag = true;
 
 		draw(mindMap);
 		return;
@@ -1608,7 +1625,7 @@ function showContextMenu(context, x, y)
 
 function showDialog(name)
 {
-	showContextMenu('');
+	showContextMenu();
 
 	$('#dialogs-cont').style.display = 'none';
 
@@ -1621,17 +1638,19 @@ function showDialog(name)
 
 	if(!name){return;}
 
+	$('#dialogs-cont').style.display = 'block';
+	$('#dialog-' + name).style.display = 'block';
+
 	if(name == 'rename')
 	{
 		$('#input-name').value = mindMap.name || '';
+		$('#input-name').focus();
 	}
 	if(name == 'save')
 	{
 		$('#input-save').value = mindMap.name || '';
+		$('#input-save').focus();
 	}
-
-	$('#dialogs-cont').style.display = 'block';
-	$('#dialog-' + name).style.display = 'block';
 }
 
 function selectColor(obj)
@@ -1639,7 +1658,7 @@ function selectColor(obj)
 	$('#color-picker').value = obj.getAttribute('data-color');
 	colorPickerChanged();
 
-	showContextMenu('');
+	showContextMenu();
 }
 
 function loadMindMap(file, name)
@@ -2077,7 +2096,7 @@ function openLink(link)
 
 function openImg()
 {
-	showContextMenu('');
+	showContextMenu();
 
 	let newTab = window.open();
 	newTab.document.body.innerHTML = '<img src=\''+ canvas.toDataURL() +'\'>';
