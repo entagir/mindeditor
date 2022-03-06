@@ -921,7 +921,7 @@ function completeRename()
 	renameMode = false;
 
 	let renameArea = $('#rename-area');
-	renamedNode.name = renameArea.value;
+	renamedNode.name = renameArea.value.trim();
 	renameArea.style.display = 'none';
 
 	checkBounds();
@@ -2063,7 +2063,7 @@ function renameMap()
 {
 	showDialog();
 
-	let name = $('#input-name').value;
+	let name = $('#input-name').value.trim();
 
 	setNameMap(name);
 }
@@ -2072,7 +2072,7 @@ function saveMap()
 {
 	showDialog();
 
-	let name = $('#input-save').value;
+	let name = $('#input-save').value.trim();
 	setNameMap(name);
 
 	saveToFile();
