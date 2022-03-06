@@ -218,7 +218,7 @@ async function initFiles()
 
 	let localSamplesList = [];
 	localSamplesList.push({name: 'Palms', url: 'static/samples/Palms.json', version: 0});
-	localSamplesList.push({name: 'MindEditorFeatures', url: 'static/samples/MindEditor%20Features.json', version: 0});
+	localSamplesList.push({name: 'MindEditor', url: 'static/samples/MindEditor.json', version: 0});
 	localFilesPromises.push(loadLocalFiles(localSamples, 'localSamples', localSamplesList));
 
 	let systemFilesList = [];
