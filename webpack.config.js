@@ -42,5 +42,6 @@ module.exports = {
         new MiniCssExtractPlugin(),
         new CleanWebpackPlugin(),
     ],
+    devtool: process.env.NODE_ENV === 'production' ? false : 'source-map',
     mode: process.env.NODE_ENV === 'production' ? 'production' : 'development'
 }
