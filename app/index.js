@@ -34,6 +34,7 @@ let contextFlag = false;
 let renameMode = false;
 let renameAuto = false;
 let renamedNode;
+let renamedNodeText = '';
 
 let cursorOffset = {x: 0, y: 0};
 let canvasOffset = {x: 0, y: 0};
@@ -854,7 +855,7 @@ function rename(node, auto)
 	let renameArea = $('#rename-area');
 	renameArea.style.display = 'block';
 	renameArea.style.fontSize = fs + 'px';
-	renameArea.value = text;
+	renameArea.value = renamedNodeText = text;
 	
 	renameArea.focus();
 	
@@ -916,15 +917,22 @@ function renameAreaSet(node)
 	renameArea.style.height = rect.height + 'px';
 }
 
-function completeRename()
+function completeRename(abort)
 {
 	renameMode = false;
 
 	let renameArea = $('#rename-area');
-	renamedNode.name = renameArea.value.trim();
-	renameArea.style.display = 'none';
-
+	if(abort)
+	{
+		renamedNode.name = renamedNodeText;
+	}
+	else
+	{
+		renamedNode.name = renameArea.value.trim();
+	}
 	checkBounds();
+	
+	renameArea.style.display = 'none';
 }
 
 function completeDrag(e, reset)
@@ -1684,6 +1692,12 @@ function renameAreaKeyDowned(e)
 	if(e.key == 'Enter')
 	{
 		completeRename();
+		canvasMouseMoved(e);
+	}
+
+	if(e.key == 'Escape')
+	{
+		completeRename(true);
 		canvasMouseMoved(e);
 	}
 }
