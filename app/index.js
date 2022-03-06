@@ -1938,6 +1938,13 @@ function addMindMap(name, source)
 
 	let num = mindMaps.length - 1;
 
+	// Set node direction
+	for(let node of mindMaps[num].nodes)
+	{
+		if(node.parent && node.parent.x > node.x){node.dir = 'left';}
+		else{node.dir = 'right';}
+	}
+
 	tabs.addTab(name || defaultName, function()
 	{
 		if(mindMapNum == num){showDialog('rename');}
