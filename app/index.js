@@ -7,6 +7,11 @@ import {Tlaloc} from './Tlaloc'
 
 import menuJson from './system/Menu.json'
 
+let fontSize = parseInt(getComputedStyle(document.body).fontSize.slice(0, -2)); // Font size in px
+let fontFamily = '';
+
+let baseSize = fontSize * 1.25;
+
 let onLoading = true;
 let DEBUG = false;
 
@@ -27,7 +32,7 @@ let dragWait = false;
 let dragWaitWorkspace = false;
 
 let contextElem;
-let contextCoords = {x:0, y:0};
+let contextCoords = {x: 0, y: 0};
 let contextUp = false;
 let contextFlag = false;
 
@@ -39,7 +44,7 @@ let renamedNodeText = '';
 let cursorOffset = {x: 0, y: 0};
 let canvasOffset = {x: 0, y: 0};
 let mindMapBox = {x: 0, y: 0, width: 0, height: 0};
-let bufferOfView = 20 * 2;
+let bufferOfView = baseSize * 2;
 
 let lastActiveNode = -1; // last active node index
 
@@ -56,6 +61,10 @@ colors['background'] = '#fcfcfc';
 colors['border'] = '#E9E9E9';
 colors.branches = ['#e096e9', '#988ee3', '#7aa3e5', '#67d7c4', '#9ed56b', '#ebd95f', '#efa670', '#e68782'];
 // extra = ['#e23e2b', '#a65427', '#ffaa38', '#e8e525', '#69b500', '#0a660d', '#3e8975', '#0da7d3', '#075978', '#272727', '#5f5f5f', '#b4b4b4'];
+
+let scaleCoef = 1.1; // For mouse whell
+
+let keys = {'ctrl': false, 'shift': false, 'alt': false};
 
 window.onload = function()
 {
@@ -109,10 +118,10 @@ async function init()
 	canvas.addEventListener('mouseup', canvasMouseUped);
 	canvas.addEventListener('dblclick', canvasDblClicked);
 	canvas.addEventListener('contextmenu', canvasContexted);
-	
-	// canvas.addEventListener('wheel', function(event){  });
+	canvas.addEventListener('wheel', canvasWhellHandler);
+
 	document.body.addEventListener('keydown', bodyKeyDownHandler);
-	// document.body.addEventListener('keyup', function(event){  });
+	document.body.addEventListener('keyup', bodyKeyUpHandler);
 
 	canvas.addEventListener('drop', canvasFilesDroped);
 	canvas.addEventListener('dragover', canvasFilesDragged);
@@ -146,6 +155,8 @@ async function init()
 	{
 		i.addEventListener('submit', function(e){e.preventDefault();});
 	}
+
+	setFontFamily('Arial');
 
 	// Menu map init
 	mindMaps['start'] = new MindMap('start', systemFiles['Menu'].mindMap);
@@ -260,6 +271,9 @@ function checkBounds()
 
 	// Check nodes and titles width and height
 
+	let tempScale = mindMap.view.scale;
+	mindMap.view.scale = 1;
+
 	let ctx = canvas.getContext('2d');
 
 	for(let i in mindMap.nodes)
@@ -274,8 +288,8 @@ function checkBounds()
 			node.textbox.width = ctx.measureText(text).width;
 			node.textbox.height = ctx.measureText(text).actualBoundingBoxAscent + ctx.measureText(text).actualBoundingBoxDescent;
 			
-			node.boundbox.width = node.textbox.width + 20 * 2;
-			node.boundbox.height = 20 * 3;
+			node.boundbox.width = node.textbox.width + baseSize * 2;
+			node.boundbox.height = baseSize * 3;
 
 			if(node.name != '')
 			{
@@ -285,7 +299,7 @@ function checkBounds()
 				node.textbox.width = ctx.measureText(text).width;
 				node.textbox.height = ctx.measureText(text).actualBoundingBoxAscent + ctx.measureText(text).actualBoundingBoxDescent;
 
-				let currentBoundBox = {width: node.textbox.width + 20 * 2, height: 20 * 3};
+				let currentBoundBox = {width: node.textbox.width + baseSize * 2, height: baseSize * 3};
 
 				if(currentBoundBox.width > node.boundbox.width)
 				{
@@ -394,7 +408,7 @@ function checkBounds()
 			
 			if(node.childs.length == 0)
 			{
-				textOffset.x = 20 + 5;
+				textOffset.x = baseSize * 1.25;
 			
 				if(node.parent.x > node.x)
 				{
@@ -403,14 +417,14 @@ function checkBounds()
 			}
 			else
 			{
-				textOffset.x = 10 + 5;
+				textOffset.x = baseSize * 0.75;
 				
 				if(node.parent.x <= node.x)
 				{
 					textOffset.x *= -1;
 				}
 		
-				textOffset.y = 20 + 5;
+				textOffset.y = baseSize * 1.25;
 				
 				if(node.parent.y >= node.y)
 				{
@@ -469,6 +483,8 @@ function checkBounds()
 	}
 
 	mindMapBox = {x: mindMapRect.left, y: mindMapRect.top, width: mindMapRect.right - mindMapRect.left, height: mindMapRect.bottom - mindMapRect.top};	
+
+	mindMap.view.scale = tempScale;
 }
 
 function draw(mindMap)
@@ -493,7 +509,7 @@ function draw(mindMap)
 		if(mindMap.nodes[i].parent)
 		{
 			// Joint offset respect to elem center
-			let startLine = {x: 0,y: 0};
+			let startLine = {x: 0, y: 0};
 			
 			if(mindMap.nodes[i].parent.parent === undefined)
 			{
@@ -545,24 +561,20 @@ function draw(mindMap)
 
 function drawRootNode(ctx, node)
 {
-	let point = def({x:node.x, y:node.y});
-
-	let joint_state = node.joint_state;
+	let point = def({x: node.x, y: node.y});
 
 	ctx.fillStyle = node.color;
-	ctx.lineWidth = 2;
-	ctx.strokeStyle = colors['border'];
 
-	drawRoundedRect(ctx, point.x - node.boundbox.width / 2, point.y - node.boundbox.height / 2, node.boundbox.width, node.boundbox.height, 10);
+	drawRoundedRect(ctx, point.x - node.boundbox.width / 2 * mindMap.view.scale, point.y - node.boundbox.height / 2 * mindMap.view.scale, node.boundbox.width * mindMap.view.scale, node.boundbox.height * mindMap.view.scale, baseSize / 2 * mindMap.view.scale);
 	drawRootText(ctx, node);
 
 	if(!(renameMode && renamedNode == node))
 	{
 		// Draw connectors ("+" circles)
-		drawConnector(ctx, point.x, point.y - node.boundbox.height / 2, node.color, node.joint_state == 0);
-		drawConnector(ctx, point.x + node.boundbox.width / 2, point.y, node.color, node.joint_state == 1);
-		drawConnector(ctx, point.x, point.y + node.boundbox.height / 2, node.color, node.joint_state == 2);
-		drawConnector(ctx, point.x - node.boundbox.width / 2, point.y, node.color, node.joint_state == 3);
+		drawConnector(ctx, point.x, point.y - node.boundbox.height / 2 * mindMap.view.scale, node.color, node.joint_state == 0);
+		drawConnector(ctx, point.x + node.boundbox.width / 2 * mindMap.view.scale, point.y, node.color, node.joint_state == 1);
+		drawConnector(ctx, point.x, point.y + node.boundbox.height / 2 * mindMap.view.scale, node.color, node.joint_state == 2);
+		drawConnector(ctx, point.x - node.boundbox.width / 2 * mindMap.view.scale, point.y, node.color, node.joint_state == 3);
 	}
 }
 
@@ -585,7 +597,7 @@ function drawEdge(ctx, start, end, color)
 	
 	drawBezier(start.x, start.y, end.x, end.y);
 
-	ctx.lineWidth = 8;
+	ctx.lineWidth = baseSize * 0.4 * mindMap.view.scale;
 	ctx.strokeStyle = color;
 	ctx.stroke();
 	ctx.closePath();
@@ -605,8 +617,8 @@ function drawEdge(ctx, start, end, color)
 		{
 			ctx.fillStyle = colors['baseText'];
 
-			ctx.fillRect( p1x, p1y, 10, 10);
-			ctx.fillRect( p2x, p2y, 10, 10);
+			ctx.fillRect(p1x, p1y, baseSize / 2, baseSize / 2);
+			ctx.fillRect(p2x, p2y, baseSize / 2, baseSize / 2);
 		}
 	}
 }
@@ -619,7 +631,6 @@ function drawRoundedRect(ctx, x, y, width, height, radius)
 	ctx.arcTo(x + width, y + height, x + width, y + height - radius, radius);
 	ctx.arcTo(x + width, y, x + width - radius, y, radius);
 	ctx.arcTo(x, y, x, y + radius, radius);
-	ctx.stroke();
 	ctx.fill();
 	ctx.closePath();
 }
@@ -634,7 +645,7 @@ function drawRootText(ctx, node)
 	ctx.fillStyle = colors['baseText'];
 	ctx.textBaseline = 'middle';
 	ctx.textAlign = 'center';
-	ctx.font = 'bold ' + 20 + 'px Arial';
+	ctx.font = 'bold ' + baseSize * mindMap.view.scale + 'px ' + fontFamily;
 	ctx.fillText(text, point.x, point.y);
 
 	if(DEBUG)
@@ -648,7 +659,7 @@ function drawRootText(ctx, node)
 
 function drawNodeText(ctx, node)
 {
-	ctx.font = 'bold ' + 15 + 'px Arial';
+	ctx.font = 'bold ' + baseSize * 0.75 * mindMap.view.scale + 'px ' + fontFamily;
 	ctx.fillStyle = colors['baseText'];
 	ctx.textBaseline = 'middle';
 	ctx.textAlign = 'left';
@@ -662,7 +673,7 @@ function drawNodeText(ctx, node)
 
 	let textboxCoords = def({x: node.textbox.x, y: node.textbox.y});
 
-	ctx.fillText(text, textboxCoords.x, textboxCoords.y + node.textbox.height / 2);
+	ctx.fillText(text, textboxCoords.x, textboxCoords.y + node.textbox.height / 2 * mindMap.view.scale);
 
 	if(DEBUG)
 	{
@@ -670,12 +681,12 @@ function drawNodeText(ctx, node)
 		ctx.strokeRect(textboxCoords.x, textboxCoords.y, node.textbox.width, node.textbox.height);
 
 		ctx.fillStyle = node.color;
-		ctx.fillRect(textboxCoords.x, textboxCoords.y, 5, 5);
+		ctx.fillRect(textboxCoords.x, textboxCoords.y, baseSize / 4, baseSize / 4);
 	}
 	
 	if(node.action)
 	{
-		ctx.fillRect(textboxCoords.x, textboxCoords.y + node.textbox.height, node.textbox.width, 0.5);
+		ctx.fillRect(textboxCoords.x, textboxCoords.y + node.textbox.height * mindMap.view.scale, node.textbox.width * mindMap.view.scale, 0.5 * mindMap.view.scale);
 	}
 }
 
@@ -685,15 +696,15 @@ function drawConnector(ctx, x, y, color, active)
 	ctx.beginPath();
 
 	ctx.fillStyle = color;
-	let r = 5;
+	let r = baseSize / 4;
 	if(active)
 	{
-		r = 15;
+		r = baseSize * 0.625;
 	}
 
-	ctx.arc(x, y, r, 0, Math.PI * 2, false);
+	ctx.arc(x, y, r * mindMap.view.scale, 0, Math.PI * 2, false);
 	ctx.fill();
-	ctx.lineWidth = 2;
+	ctx.lineWidth = 2 * mindMap.view.scale;
 	ctx.strokeStyle = colors['background'];
 	ctx.stroke();
 
@@ -706,7 +717,7 @@ function drawConnector(ctx, x, y, color, active)
 		ctx.textBaseline = 'middle';
 		ctx.textAlign = 'center';
 
-		ctx.font = 'bold ' + 20 + 'px Arial';
+		ctx.font = 'bold ' + baseSize * 1.5 * mindMap.view.scale + 'px ' + fontFamily;
 		ctx.fillText('+', x, y);
 	}
 }
@@ -716,7 +727,7 @@ function drawSplash(ctx)
 	ctx.fillStyle = colors['baseText'];
 	ctx.textBaseline = 'middle';
 	ctx.textAlign = 'center';
-	ctx.font = 'bold ' + 20 + 'px Arial';
+	ctx.font = 'bold ' + baseSize * mindMap.view.scale + 'px ' + fontFamily;
 	ctx.fillText(splashText, canvas.width / 2, canvas.height / 2);
 }
 
@@ -839,22 +850,22 @@ function calculateNodeCoords(node, jointNum)
 function rename(node, auto)
 {
 	let text = node.name;
-	let fs = 20; // Font Size (in px)
+	let fs = baseSize; // Font Size (in px)
 	
 	if(node.parent === undefined)
 	{
-		fs = '20';
+		fs = baseSize;
 	}
 	else
 	{
-		fs = '15';
+		fs = baseSize * 0.75;
 	}
 
 	renameAreaSet(node);
 
 	let renameArea = $('#rename-area');
 	renameArea.style.display = 'block';
-	renameArea.style.fontSize = fs + 'px';
+	renameArea.style.fontSize = fs * mindMap.view.scale + 'px';
 	renameArea.value = renamedNodeText = text;
 	
 	renameArea.focus();
@@ -868,8 +879,11 @@ function rename(node, auto)
 
 function renameAreaSet(node)
 {
+	let renameArea = $('#rename-area');
+
 	let point = def({x: node.x, y: node.y});
 	let rect = {width: 0, height: 0};
+	let borderRadius = baseSize / 2 * mindMap.view.scale;
 	
 	if(node.parent === undefined)
 	{
@@ -877,22 +891,24 @@ function renameAreaSet(node)
 		rect.width = node.boundbox.width + 2;
 		rect.height = node.boundbox.height + 2;
 		
-		point.x -= rect.width / 2;
-		point.y -= rect.height / 2;
+		point.x -= rect.width / 2 * mindMap.view.scale;
+		point.y -= rect.height / 2 * mindMap.view.scale;
 	}
 	else
 	{
+		let renameAreaPadding = {width: baseSize * 1.25, height: baseSize * 0.75};
+
 		point = def({x: node.textbox.x, y: node.textbox.y});
-		point.x -= 25 / 2;
-		point.y -= 15 / 2;
+		point.x -=  renameAreaPadding.width / 2 * mindMap.view.scale;
+		point.y -=  renameAreaPadding.height / 2 * mindMap.view.scale;
 
 		if(node.textbox.width > node.textbox.minWidth)
 		{
-			rect.width = node.textbox.width + 25;
+			rect.width = node.textbox.width + renameAreaPadding.width;
 		}
 		else
 		{
-			rect.width = node.textbox.minWidth + 25;
+			rect.width = node.textbox.minWidth + renameAreaPadding.width;
 
 			if(node.textbox.x < node.x)
 			{
@@ -902,19 +918,19 @@ function renameAreaSet(node)
 
 		if(node.textbox.height > node.textbox.minHeight)
 		{
-			rect.height = node.textbox.height + 15;
+			rect.height = node.textbox.height + renameAreaPadding.height;
 		}
 		else
 		{
-			rect.height = node.textbox.minHeight + 15;
+			rect.height = node.textbox.minHeight + renameAreaPadding.height;
 		}
 	}
 
-	let renameArea = $('#rename-area');
 	renameArea.style.left = point.x + 'px';
 	renameArea.style.top = point.y + 'px';
-	renameArea.style.width = rect.width + 'px';
-	renameArea.style.height = rect.height + 'px';
+	renameArea.style.width = rect.width * mindMap.view.scale + 'px';
+	renameArea.style.height = rect.height * mindMap.view.scale + 'px';
+	renameArea.style.borderRadius = borderRadius + 'px';
 }
 
 function completeRename(abort)
@@ -1515,11 +1531,112 @@ function canvasDblClicked(e)
 	canvasMouseMoved(e); // Draw
 }
 
+function canvasWhellHandler(e)
+{
+	e.preventDefault();
+
+	if(!mindMap.editable){return;}
+
+	let x = e.offsetX;
+	let y = e.offsetY;
+
+	if(keys['ctrl'])
+	{
+		// Zoom
+		let currentScaling = Math.abs(e.deltaY / 53 * scaleCoef);
+
+		if(e.deltaY < 0)
+		{
+			scale(currentScaling, x, y);
+		}
+		else if(e.deltaY > 0)
+		{
+			scale(1 / currentScaling, x, y);
+		}
+	}
+	else if(keys['shift'])
+	{
+		// Scroll horizontally
+		shiftView(-e.deltaY, 0);
+		draw(mindMap);
+	}
+	else
+	{
+		// Scroll vertically
+		shiftView(0, -e.deltaY);
+		draw(mindMap);
+	}
+}
+
 function bodyKeyDownHandler(e)
 {
+	// Check special keys
+
+	if(e.ctrlKey || e.metaKey)
+	{
+		keys['ctrl'] = true;
+	}
+
+	if(e.shiftKey)
+	{
+		keys['shift'] = true;
+	}
+
+	if(e.altKey)
+	{
+		keys['alt'] = true;
+	}
+
 	if(e.key == 'Escape')
 	{
 		showDialog();
+	}
+
+	if(keys['ctrl'] && e.key == '0')
+	{
+		e.preventDefault();
+
+		scale(1 / mindMap.view.scale);
+
+		draw(mindMap);
+	}
+
+	if(keys['ctrl'] && (e.code == 'Equal' || e.code == 'NumpadAdd'))
+	{
+		e.preventDefault();
+
+		scale(scaleCoef);
+
+		draw(mindMap);
+	}
+
+	if(keys['ctrl'] && (e.code == 'Minus' || e.code == 'NumpadSubtract'))
+	{
+		e.preventDefault();
+
+		scale(1 / scaleCoef);
+
+		draw(mindMap);
+	}
+}
+
+function bodyKeyUpHandler(e)
+{
+	// Check special keys
+
+	if(!e.ctrlKey && !e.metaKey)
+	{
+		keys['ctrl'] = false;
+	}
+
+	if(!e.shiftKey)
+	{
+		keys['shift'] = false;
+	}
+
+	if(!e.altKey)
+	{
+		keys['alt'] = false;
 	}
 }
 
@@ -1727,8 +1844,8 @@ function isOverNodeText(event, node)
 function isOverNode(event, node)
 {
 	let cursor = undef({x: event.offsetX, y: event.offsetY});
-	
-	return ( Math.pow(cursor.x - node.x, 2) + Math.pow(cursor.y - node.y, 2) <= Math.pow( 20, 2 ) );
+
+	return isOverCircle(node.x, node.y, baseSize * 0.625, cursor);
 }
 
 function isOverRoot(event, node)
@@ -1740,20 +1857,20 @@ function isOverRoot(event, node)
 
 function isOverRootJoint(event, node)
 {
-	function isOverCircle(circleX, circleY, circleRadius, cursorPoint)
-	{
-		return ( Math.pow(cursorPoint.x - circleX, 2) + 
-		Math.pow(cursorPoint.y - circleY, 2) <= Math.pow( circleRadius, 2 ) );
-	}
-
-	let cursorPoint = undef({x:event.offsetX, y:event.offsetY});
+	let cursorPoint = undef({x: event.offsetX, y: event.offsetY});
 	
-	if(isOverCircle(node.x, node.y - node.boundbox.height/2, 20, cursorPoint)){return 0;}
-	if(isOverCircle(node.x + node.boundbox.width/2, node.y, 20, cursorPoint)){return 1;}
-	if(isOverCircle(node.x, node.y + node.boundbox.height/2, 20, cursorPoint)){return 2;}
-	if(isOverCircle(node.x - node.boundbox.width/2, node.y, 20, cursorPoint)){return 3;}
+	if(isOverCircle(node.x, node.y - node.boundbox.height / 2, baseSize * 0.625, cursorPoint)){return 0;}
+	if(isOverCircle(node.x + node.boundbox.width / 2, node.y, baseSize * 0.625, cursorPoint)){return 1;}
+	if(isOverCircle(node.x, node.y + node.boundbox.height / 2, baseSize * 0.625, cursorPoint)){return 2;}
+	if(isOverCircle(node.x - node.boundbox.width / 2, node.y, baseSize * 0.625, cursorPoint)){return 3;}
 	
 	return -1;
+}
+
+function isOverCircle(circleX, circleY, circleRadius, cursorPoint)
+{
+	return ( Math.pow(cursorPoint.x - circleX, 2) + 
+	Math.pow(cursorPoint.y - circleY, 2) <= Math.pow( circleRadius, 2 ) );
 }
 
 function def(point)
@@ -1762,8 +1879,8 @@ function def(point)
 	// Coords global --> canvas
 	
 	let res = {};
-	res.x = point.x + mindMap.view.x;
-	res.y = point.y + mindMap.view.y;
+	res.x = (point.x + mindMap.view.x) * mindMap.view.scale;
+	res.y = (point.y + mindMap.view.y) * mindMap.view.scale;
 	
 	return res;
 }
@@ -1774,16 +1891,16 @@ function undef(point)
 	// Coords click canvas --> global
 	
 	let res = {};
-	res.x = point.x - mindMap.view.x;
-	res.y = point.y - mindMap.view.y;
+	res.x = point.x / mindMap.view.scale - mindMap.view.x;
+	res.y = point.y / mindMap.view.scale - mindMap.view.y;
 	
 	return res;
 }
 
 function shiftView(x, y)
 {
-	mindMap.view.x += x;
-	mindMap.view.y += y;
+	mindMap.view.x += x / mindMap.view.scale;
+	mindMap.view.y += y / mindMap.view.scale;
 }
 
 function setView(file)
@@ -1820,6 +1937,39 @@ function setView(file)
 	}
 
 	draw(mindMap);
+}
+
+function scale(coef, x, y)
+{
+	if(mindMap.view.scale * coef > 3 || mindMap.view.scale * coef < 1 / 3)
+	{
+		return;
+	}
+
+	let p = {};
+
+	if(x && y)
+	{
+		p = {x: x, y: y};
+	}
+	else
+	{
+		p = {x: canvas.width / 2, y: canvas.height / 2};
+	}
+
+	mindMap.view.scale *= coef;
+
+	shiftView(p.x - p.x * coef, p.y - p.y * coef);
+	checkBounds();
+	draw(mindMap);
+}
+
+function setFontFamily(fontFamilyAsString)
+{
+	fontFamily = fontFamilyAsString;
+
+	let renameArea = $('#rename-area');
+	renameArea.style.fontFamily = fontFamily;
 }
 
 function getCenterOfView(mindMap)

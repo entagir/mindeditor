@@ -4,7 +4,7 @@ class MindMap
 	{
 		this.nodes = [];
 		this.editable = true;
-		this.view = {x: 0 , y: 0, moveable: true};
+		this.view = {x: 0 , y: 0, scale: 1, moveable: true};
 
 		if(source)
 		{
