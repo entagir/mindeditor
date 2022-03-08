@@ -216,6 +216,12 @@ border: 1px solid #ccc;
 border-radius: 0.5em;
 }
 
+#dialogs-cont > div.top
+{
+transform: translate(-50%, 0);
+top: 0.5em;
+}
+
 #dialogs-cont button, #dialogs-cont input
 {
 padding: 0.65em;
