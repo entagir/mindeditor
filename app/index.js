@@ -1593,37 +1593,30 @@ function bodyKeyDownHandler(e)
 		showDialog();
 	}
 
-	if(renameMode)
-	{
-		e.preventDefault();
-
-		return;
-	}
-
 	if(keys['ctrl'] && e.key == '0')
 	{
 		e.preventDefault();
+		if(renameMode){return;}
 
 		scale(1 / mindMap.view.scale);
-
 		draw(mindMap);
 	}
 
 	if(keys['ctrl'] && (e.code == 'Equal' || e.code == 'NumpadAdd'))
 	{
 		e.preventDefault();
+		if(renameMode){return;}
 
 		scale(scaleCoef);
-
 		draw(mindMap);
 	}
 
 	if(keys['ctrl'] && (e.code == 'Minus' || e.code == 'NumpadSubtract'))
 	{
 		e.preventDefault();
+		if(renameMode){return;}
 
 		scale(1 / scaleCoef);
-
 		draw(mindMap);
 	}
 }
