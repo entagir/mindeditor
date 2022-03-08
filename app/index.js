@@ -1593,6 +1593,13 @@ function bodyKeyDownHandler(e)
 		showDialog();
 	}
 
+	if(renameMode)
+	{
+		e.preventDefault();
+
+		return;
+	}
+
 	if(keys['ctrl'] && e.key == '0')
 	{
 		e.preventDefault();
