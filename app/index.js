@@ -132,6 +132,7 @@ async function init()
 	$('#rename-area').addEventListener('keydown', renameAreaKeyDowned);
 	$('#rename-area').addEventListener('mouseover', renameAreaMouseOver);
 	$('#rename-area').addEventListener('blur', renameAreaBlured);
+	$('#rename-area').addEventListener('wheel', function(e){e.preventDefault();});
 
 	$('#dialogs-cont').addEventListener('mousedown', function(e){if(e.target == this){showDialog();}});
 	$('#button-name').addEventListener('click', renameMap);
@@ -1535,7 +1536,7 @@ function canvasWhellHandler(e)
 {
 	e.preventDefault();
 
-	if(!mindMap.editable){return;}
+	if(!mindMap.editable || renameMode){return;}
 
 	let x = e.offsetX;
 	let y = e.offsetY;
