@@ -14,7 +14,7 @@ class MindMap
 		if(name){this.name = name;}
 	}
 	
-	add_node(x, y, name, joint, parent, color)
+	addNode(x, y, name, joint, parent, color)
 	{
 		if(parent)
 		{
@@ -43,7 +43,7 @@ class MindMap
 		}
 	}
 
-	delete_node(node, first)
+	deleteNode(node, first)
 	{
 		if(first && node.parent)
 		{
@@ -52,13 +52,13 @@ class MindMap
 
 		for(let i in node.childs)
 		{
-			this.delete_node(node.childs[i]);
+			this.deleteNode(node.childs[i]);
 		}
 
 		this.nodes.splice(this.nodes.indexOf(node), 1);
 	}
 
-	get_struct()
+	getStruct()
 	{
 		let struct = [];
 
@@ -66,14 +66,14 @@ class MindMap
 		{
 			if (this.nodes[i].parent){continue;}
 
-			struct.push(get_plain_node(this.nodes[i]));
+			struct.push(getPlainNode(this.nodes[i]));
 		}
 
 		return struct;
 
-		function get_plain_node(node)
+		function getPlainNode(node)
 		{
-			let pnode = 
+			let plainNode = 
 			{
 				x: node.x,
 				y: node.y,
@@ -85,10 +85,10 @@ class MindMap
 
 			for(let i in node.childs)
 			{
-				pnode.nodes.push(get_plain_node(node.childs[i]));
+				plainNode.nodes.push(getPlainNode(node.childs[i]));
 			}
 
-			return pnode;
+			return plainNode;
 		}
 	}
 
@@ -103,7 +103,7 @@ class MindMap
 
 		function addPlainNode(mindMap, node, parent)
 		{
-			let currentNode = mindMap.add_node(node.x, node.y, node.name, node.joint, parent, node.color);
+			let currentNode = mindMap.addNode(node.x, node.y, node.name, node.joint, parent, node.color);
 			currentNode.action = node.action;
 
 			for(let i in node.nodes)
@@ -116,11 +116,11 @@ class MindMap
 
 class Node
 {
-	constructor(x, y, name, joint, parent, color)
+	constructor(x, y, name = '', joint, parent, color = '')
 	{
 		this.x = x;
 		this.y = y;
-		this.name = name || '';
+		this.name = name;
 		this.parent = parent;
 		this.childs = [];
 		this.joint = joint;
@@ -129,7 +129,7 @@ class Node
 		this.joint_state = -1;
 		this.textbox = {};
 		this.boundbox = {};
-		this.color = color || '';
+		this.color = color;
 	}
 }
 

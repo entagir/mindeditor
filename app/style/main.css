@@ -147,6 +147,7 @@ border: none;
 color: #565656;
 font-weight: bold;
 cursor: pointer;
+text-align: left;
 }
 
 .context-menu button:hover

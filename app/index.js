@@ -575,10 +575,10 @@ function drawRootNode(ctx, node)
 	if(!(renameMode && renamedNode == node))
 	{
 		// Draw connectors ("+" circles)
-		drawConnector(ctx, point.x, point.y - node.boundbox.height / 2 * mindMap.view.scale, node.color, node.joint_state == 0);
-		drawConnector(ctx, point.x + node.boundbox.width / 2 * mindMap.view.scale, point.y, node.color, node.joint_state == 1);
-		drawConnector(ctx, point.x, point.y + node.boundbox.height / 2 * mindMap.view.scale, node.color, node.joint_state == 2);
-		drawConnector(ctx, point.x - node.boundbox.width / 2 * mindMap.view.scale, point.y, node.color, node.joint_state == 3);
+		drawConnector(ctx, point.x, point.y - node.boundbox.height / 2 * mindMap.view.scale, node.color, node.jointState == 0);
+		drawConnector(ctx, point.x + node.boundbox.width / 2 * mindMap.view.scale, point.y, node.color, node.jointState == 1);
+		drawConnector(ctx, point.x, point.y + node.boundbox.height / 2 * mindMap.view.scale, node.color, node.jointState == 2);
+		drawConnector(ctx, point.x - node.boundbox.width / 2 * mindMap.view.scale, point.y, node.color, node.jointState == 3);
 	}
 }
 
@@ -996,7 +996,7 @@ function deleteSelectedNode()
 
 	showContextMenu();
 
-	mindMap.delete_node(contextElem, true);
+	mindMap.deleteNode(contextElem, true);
 	checkBounds();
 
 	draw(mindMap);
@@ -1019,7 +1019,7 @@ function resetLastActiveNode()
 		}
 		else
 		{
-			mindMap.nodes[lastActiveNode].joint_state = -1;
+			mindMap.nodes[lastActiveNode].jointState = -1;
 		}
 	}
 }
@@ -1330,7 +1330,7 @@ function canvasMouseMoved(e)
 			// "+" circles
 			if(!renameMode || renameAuto)
 			{
-				mindMap.nodes[i].joint_state = jointIndex;
+				mindMap.nodes[i].jointState = jointIndex;
 				
 				draw(mindMap);
 			}
@@ -1498,8 +1498,8 @@ function canvasDblClicked(e)
 		if(mindMap.nodes[i].parent === undefined)
 		{
 			// "+" circles
-			let joint_num = isOverRootJoint(e, mindMap.nodes[i]);
-			if(joint_num != -1)
+			let jointNum = isOverRootJoint(e, mindMap.nodes[i]);
+			if(jointNum != -1)
 			{
 				return;
 			}
@@ -2104,7 +2104,7 @@ function getFileFromMap(mindMap, view)
 {
 	let file = 
 	{
-		mindMap: mindMap.get_struct(),
+		mindMap: mindMap.getStruct(),
 		
 		editorSetings: {},
 	};
@@ -2161,7 +2161,7 @@ function addNode(mindMap, x, y, name, joint, parent, color)
 		}
 	}
 
-	return mindMap.add_node(x, y, name, joint, parent, color);
+	return mindMap.addNode(x, y, name, joint, parent, color);
 }
 
 function contextAddRoot()
