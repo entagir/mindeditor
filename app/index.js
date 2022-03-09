@@ -137,7 +137,6 @@ async function init()
 	$('#dialogs-cont').addEventListener('mousedown', function(e){if(e.target == this){showDialog();}});
 	$('#button-name').addEventListener('click', renameMap);
 	$('#button-save').addEventListener('click', saveMap);
-    $('#button-image').addEventListener('click', openImg);
 
     $('#context-branch__set-color').addEventListener('click', function(){showContextMenu('colorpicker');});
     $('#context-branch__rename').addEventListener('click', renameSelectedNode);
@@ -146,7 +145,7 @@ async function init()
     $('#context-color-picker__color-picker__button').addEventListener('click', function(){$('#color-picker').click();});
     $('#color-picker').addEventListener('change', colorPickerChanged);
 
-    $('#context-canvas__open-image').addEventListener('click', openImg);
+    $('#context-canvas__save').addEventListener('click', saveFile);
     $('#context-canvas__rename').addEventListener('click', function(){showDialog('rename');});
 
 	$('#input-name').placeholder = $('#input-save').placeholder = defaultName;
@@ -488,14 +487,17 @@ function checkBounds()
 	mindMap.view.scale = tempScale;
 }
 
-function draw(mindMap)
+function draw(mindMap, canvasElem)
 {
-	let ctx = canvas.getContext('2d');
-
-	canvas.width = canvas.width;
+	if(!canvasElem)
+	{
+		canvasElem = canvas;
+	}
+	canvasElem.width = canvasElem.width;
+	let ctx = canvasElem.getContext('2d');
 
 	ctx.fillStyle = colors['background'];
-	ctx.fillRect(0, 0, canvas.width, canvas.height);
+	ctx.fillRect(0, 0, canvasElem.width, canvasElem.height);
 
 	if(mindMap.nodes.length == 0)
 	{
@@ -2012,6 +2014,24 @@ function saveFile()
 {
 	if(mindMapNum != 'start' && mindMapNum != 'help')
 	{
+		showContextMenu();
+
+		let shadowCanvas = document.createElement('canvas');
+		shadowCanvas.width = mindMapBox.width;
+		shadowCanvas.height = mindMapBox.height;
+	
+		let tempView = mindMap.view;
+		mindMap.view = {x: -mindMapBox.x, y: -mindMapBox.y, scale: 1};
+	
+		draw(mindMap, shadowCanvas);
+	
+		let imgDataUrl = shadowCanvas.toDataURL();
+	
+		$('#button-image').href = imgDataUrl;
+		$('#button-image').download = (mindMap.name || defaultName) + '.png';
+	
+		mindMap.view = tempView;
+
 		showDialog('save')
 	};
 }
@@ -2264,14 +2284,6 @@ function initDragWorkspace()
 function openLink(link)
 {
 	window.open(link, '_blank');
-}
-
-function openImg()
-{
-	showContextMenu();
-
-	let newTab = window.open();
-	newTab.document.body.innerHTML = '<img src=\''+ canvas.toDataURL() +'\'>';
 }
 
 function randomInteger(min, max)
