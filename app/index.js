@@ -145,6 +145,7 @@ async function init()
     $('#context-color-picker__color-picker__button').addEventListener('click', function(){$('#color-picker').click();});
     $('#color-picker').addEventListener('change', colorPickerChanged);
 
+	$('#context-canvas__add-root').addEventListener('click', contextAddRoot);
     $('#context-canvas__save').addEventListener('click', saveFile);
     $('#context-canvas__rename').addEventListener('click', function(){showDialog('rename');});
 
@@ -1526,7 +1527,6 @@ function canvasDblClicked(e)
 	}
 
 	// Double click on canvas
-	
 	let cursor = undef({x: e.offsetX, y: e.offsetY});
 	addNode(mindMap, cursor.x, cursor.y);
 	
@@ -2162,6 +2162,16 @@ function addNode(mindMap, x, y, name, joint, parent, color)
 	}
 
 	return mindMap.add_node(x, y, name, joint, parent, color);
+}
+
+function contextAddRoot()
+{
+	let cursor = undef({x: contextCoords.x, y: contextCoords.y});
+	addNode(mindMap, cursor.x, cursor.y);
+	
+	checkBounds();
+
+	showContextMenu();
 }
 
 function selectMindMap(num)
