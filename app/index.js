@@ -7,6 +7,9 @@ import {Tlaloc} from './Tlaloc'
 
 import menuJson from './system/Menu.json'
 
+const scaleCoef = 1.1; // For mouse whell
+const animInterval = 17; // Micro sec
+
 let fontSize = parseInt(getComputedStyle(document.body).fontSize.slice(0, -2)); // Font size in px
 let fontFamily = '';
 
@@ -62,8 +65,6 @@ colors['border'] = '#E9E9E9';
 colors.branches = ['#e096e9', '#988ee3', '#7aa3e5', '#67d7c4', '#9ed56b', '#ebd95f', '#efa670', '#e68782'];
 // extra = ['#e23e2b', '#a65427', '#ffaa38', '#e8e525', '#69b500', '#0a660d', '#3e8975', '#0da7d3', '#075978', '#272727', '#5f5f5f', '#b4b4b4'];
 
-let scaleCoef = 1.1; // For mouse whell
-
 let keys = {'ctrl': false, 'shift': false, 'alt': false};
 
 window.onload = function()
@@ -83,7 +84,7 @@ window.onresize = function()
 
 	if(!mindMap.editable)
 	{
-		setView();
+		setViewAuto();
 
 		return;
 	}
@@ -1563,14 +1564,16 @@ function canvasWhellHandler(e)
 	else if(keys['shift'])
 	{
 		// Scroll horizontally
-		shiftView(-e.deltaY, 0);
-		draw(mindMap);
+		//shiftView(-e.deltaY, 0);
+		setView(mindMap.view.x - e.deltaY, mindMap.view.y, undefined, 200);
+		//draw(mindMap);
 	}
 	else
 	{
 		// Scroll vertically
-		shiftView(0, -e.deltaY);
-		draw(mindMap);
+		//shiftView(0, -e.deltaY);
+		setView(mindMap.view.x, mindMap.view.y - e.deltaY, undefined, 200);
+		//draw(mindMap);
 	}
 }
 
@@ -1796,7 +1799,7 @@ function loadMindMap(file, name)
 {
 	addMindMap(name, file['mindMap']);
 
-	setView(file);
+	setViewAuto(file);
 }
 
 function renameAreaInputed()
@@ -1909,7 +1912,30 @@ function shiftView(x, y)
 	mindMap.view.y += y / mindMap.view.scale;
 }
 
-function setView(file)
+function setView(x, y, scale, duration=0)
+{
+	let dX = x - mindMap.view.x;
+	let dY = y - mindMap.view.y;
+
+	let framesCount = duration / animInterval;
+	let vX = dX / framesCount;
+	let vY = dY / framesCount;
+
+	let frame = 0;
+
+	(function run()
+	{
+		shiftView(vX, vY);
+		draw(mindMap);
+
+		if(++frame < framesCount)
+		{
+			setTimeout(run, animInterval);
+		}
+	})();
+}
+
+function setViewAuto(file)
 {
 	// Set view automatically
 
@@ -2206,7 +2232,7 @@ function selectMindMap(num)
 
 	if(num == 'start' || num == 'help')
 	{
-		setView();
+		setViewAuto();
 	}
 	else
 	{
