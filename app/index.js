@@ -290,7 +290,7 @@ function checkBounds()
 			node.textbox.height = ctx.measureText(text).actualBoundingBoxAscent + ctx.measureText(text).actualBoundingBoxDescent;
 			
 			node.boundbox.width = node.textbox.width + baseSize * 2;
-			node.boundbox.height = baseSize * 3;
+			node.boundbox.height = node.textbox.height + baseSize * 2;
 
 			if(node.name != '')
 			{
@@ -300,7 +300,7 @@ function checkBounds()
 				node.textbox.width = ctx.measureText(text).width;
 				node.textbox.height = ctx.measureText(text).actualBoundingBoxAscent + ctx.measureText(text).actualBoundingBoxDescent;
 
-				let currentBoundBox = {width: node.textbox.width + baseSize * 2, height: baseSize * 3};
+				let currentBoundBox = {width: node.textbox.width + baseSize * 2, height: node.textbox.height + baseSize * 2};
 
 				if(currentBoundBox.width > node.boundbox.width)
 				{
@@ -700,16 +700,17 @@ function drawConnector(ctx, x, y, color, active)
 	ctx.beginPath();
 
 	ctx.fillStyle = color;
+	ctx.lineWidth = 2 * mindMap.view.scale;
+	ctx.strokeStyle = colors['background'];
 	let r = baseSize / 4;
 	if(active)
 	{
 		r = baseSize * 0.625;
+		ctx.strokeStyle = colors['border'];
 	}
 
 	ctx.arc(x, y, r * mindMap.view.scale, 0, Math.PI * 2, false);
 	ctx.fill();
-	ctx.lineWidth = 2 * mindMap.view.scale;
-	ctx.strokeStyle = colors['background'];
 	ctx.stroke();
 
 	ctx.closePath();
@@ -718,12 +719,14 @@ function drawConnector(ctx, x, y, color, active)
 	if(active)
 	{
 		ctx.fillStyle = colors['background'];
-		ctx.textBaseline = 'middle';
-		ctx.textAlign = 'center';
-
-		ctx.font = 'bold ' + baseSize * 1.5 * mindMap.view.scale + 'px ' + fontFamily;
-		ctx.fillText('+', x, y);
+		drawPlus(ctx, x, y, r * 1.5 * mindMap.view.scale, baseSize / 5 * mindMap.view.scale);
 	}
+}
+
+function drawPlus(ctx, x, y, width, lineWidth)
+{
+	ctx.fillRect(x - lineWidth / 2, y - width / 2, lineWidth, width);
+	ctx.fillRect(x - width / 2, y - lineWidth / 2, width, lineWidth);
 }
 
 function drawSplash(ctx)
