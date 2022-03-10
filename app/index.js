@@ -1920,6 +1920,7 @@ function setView(file)
 
 		mindMap.view.x = canvas.width / 2 - centerOfView.x;
 		mindMap.view.y = canvas.height / 2 - centerOfView.y;
+		mindMap.view.scale = file['editorSetings']['scale']; // Need setter
 	}
 	else if(mindMapBox.width + bufferOfView > canvas.width || mindMapBox.height + bufferOfView > canvas.height)
 	{
@@ -2112,6 +2113,7 @@ function getFileFromMap(mindMap, view)
 	if(view)
 	{
 		file.editorSetings['centerOfView'] = getCenterOfView(mindMap);
+		file.editorSetings['scale'] = mindMap.view.scale;
 	}
 
 	return file;
@@ -2123,7 +2125,7 @@ function addMindMap(name, source)
 
 	let num = mindMaps.length - 1;
 
-	// Set node direction
+	// Init nodes direction
 	for(let node of mindMaps[num].nodes)
 	{
 		if(node.parent && node.parent.x > node.x){node.dir = 'left';}
@@ -2152,12 +2154,12 @@ function addNode(mindMap, x, y, name, joint, parent, color)
 			}
 			else
 			{
-				color = colors.branches[randomInteger(0, colors.branches.length-1)];
+				color = colors.branches[randomInteger(0, colors.branches.length - 1)];
 			}
 		}
 		else
 		{
-			color = colors.branches[randomInteger(0, colors.branches.length-1)];
+			color = colors.branches[randomInteger(0, colors.branches.length - 1)];
 		}
 	}
 

@@ -2,16 +2,16 @@ class MindMap
 {
 	constructor(name, source)
 	{
-		this.nodes = [];
+		this.name = name;
 		this.editable = true;
+
+		this.nodes = [];
 		this.view = {x: 0 , y: 0, scale: 1, moveable: true};
 
 		if(source)
 		{
 			this.importFromStruct(source);
 		}
-
-		if(name){this.name = name;}
 	}
 	
 	addNode(x, y, name, joint, parent, color)
@@ -94,8 +94,6 @@ class MindMap
 
 	importFromStruct(struct)
 	{
-		this.nodes = [];
-
 		for(let i in struct)
 		{
 			addPlainNode(this, struct[i]);
