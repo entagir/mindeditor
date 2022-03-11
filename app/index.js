@@ -1569,12 +1569,12 @@ function canvasWhellHandler(e)
 	else if(keys['shift'])
 	{
 		// Scroll horizontally
-		setView(targetView.x - e.deltaY, targetView.y, undefined, 200);
+		setView(targetView.x - e.deltaY / mindMap.view.scale, targetView.y, undefined, 200 / mindMap.view.scale);
 	}
 	else
 	{
 		// Scroll vertically
-		setView(targetView.x, targetView.y - e.deltaY, undefined, 200);
+		setView(targetView.x, targetView.y - e.deltaY / mindMap.view.scale, undefined, 200 / mindMap.view.scale);
 	}
 }
 
@@ -1924,7 +1924,6 @@ function setView(x, y, scale, duration=0)
 	let vX = dX / framesCount;
 	let vY = dY / framesCount;
 
-	let frame = 0;
 	targetView = {x: x, y: y, scale: scale};
 
 	(function run()
@@ -2015,6 +2014,8 @@ function scale(coef, x, y)
 	mindMap.view.scale *= coef;
 
 	shiftView(p.x - p.x * coef, p.y - p.y * coef);
+	setTargetView();
+
 	checkBounds();
 	draw(mindMap);
 }
