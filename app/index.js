@@ -8,7 +8,7 @@ import {Tlaloc} from './Tlaloc'
 import menuJson from './system/Menu.json'
 
 const scaleCoef = 1.1; // For mouse whell
-const animInterval = 17; // Micro sec
+const animInterval = 1000 / 120; // Micro sec
 
 let fontSize = parseInt(getComputedStyle(document.body).fontSize.slice(0, -2)); // Font size in px
 let fontFamily = '';
@@ -33,6 +33,9 @@ let dragTimer;
 let dragEnd = false;
 let dragWait = false;
 let dragWaitWorkspace = false;
+
+let animTimer;
+let targetView = {x: 0, y: 0, scale: 1}; // For anim
 
 let contextElem;
 let contextCoords = {x: 0, y: 0};
@@ -1291,6 +1294,8 @@ function canvasMouseMoved(e)
 		canvasOffset.x = x;
 		canvasOffset.y = y;
 
+		setTargetView();
+
 		draw(mindMap);
 
 		if(renameMode)
@@ -1564,16 +1569,12 @@ function canvasWhellHandler(e)
 	else if(keys['shift'])
 	{
 		// Scroll horizontally
-		//shiftView(-e.deltaY, 0);
-		setView(mindMap.view.x - e.deltaY, mindMap.view.y, undefined, 200);
-		//draw(mindMap);
+		setView(targetView.x - e.deltaY, targetView.y, undefined, 200);
 	}
 	else
 	{
 		// Scroll vertically
-		//shiftView(0, -e.deltaY);
-		setView(mindMap.view.x, mindMap.view.y - e.deltaY, undefined, 200);
-		//draw(mindMap);
+		setView(targetView.x, targetView.y - e.deltaY, undefined, 200);
 	}
 }
 
@@ -1914,6 +1915,8 @@ function shiftView(x, y)
 
 function setView(x, y, scale, duration=0)
 {
+	clearTimeout(animTimer);
+
 	let dX = x - mindMap.view.x;
 	let dY = y - mindMap.view.y;
 
@@ -1922,15 +1925,26 @@ function setView(x, y, scale, duration=0)
 	let vY = dY / framesCount;
 
 	let frame = 0;
+	targetView = {x: x, y: y, scale: scale};
 
 	(function run()
 	{
 		shiftView(vX, vY);
+
+		if((dY > 0 && mindMap.view.y > targetView.y) || (dY <= 0 && mindMap.view.y < targetView.y))
+		{
+			mindMap.view.y = targetView.y;
+		}
+		if((dX > 0 && mindMap.view.x > targetView.x) || (dX <= 0 && mindMap.view.x < targetView.x))
+		{
+			mindMap.view.x = targetView.x;
+		}
+
 		draw(mindMap);
 
-		if(++frame < framesCount)
+		if(mindMap.view.x != targetView.x || mindMap.view.y != targetView.y)
 		{
-			setTimeout(run, animInterval);
+			animTimer = setTimeout(run, animInterval);
 		}
 	})();
 }
@@ -1969,7 +1983,15 @@ function setViewAuto(file)
 		if(!mindMap.editable){mindMap.view.moveable = false;}
 	}
 
+	setTargetView();
+
 	draw(mindMap);
+}
+
+function setTargetView()
+{
+	targetView.x = mindMap.view.x;
+	targetView.y = mindMap.view.y;
 }
 
 function scale(coef, x, y)
