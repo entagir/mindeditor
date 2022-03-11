@@ -33,6 +33,7 @@ let dragTimer;
 let dragEnd = false;
 let dragWait = false;
 let dragWaitWorkspace = false;
+let dragTransplant = false;
 
 let animTimer;
 let targetView = {x: 0, y: 0, scale: 1}; // For anim
@@ -984,14 +985,16 @@ function completeDrag(e, reset)
 			resetLastActiveNode();
 			dragState = 0;
 			canvas.style.cursor = 'grab';
-			draw(mindMap);
 		}
 		else
 		{
 			dragState = 1;
 			canvas.style.cursor = 'pointer';
-			draw(mindMap);
 		}
+
+		dragTransplant = false;
+
+		draw(mindMap);
 
 		return;
 	}
@@ -1040,6 +1043,19 @@ function moveNode(node, offsetX, offsetY)
 	{
 		moveNode(node.childs[i], offsetX, offsetY);
 	}
+}
+
+function transplateNode(branch, node)
+{
+	branch.parent.childs.splice(branch.parent.childs.indexOf(branch), 1);
+
+	branch.parent = node;
+	node.childs.push(branch);
+}
+
+function distance(nodeA, nodeB)
+{
+	return Math.sqrt(Math.pow(nodeA.x - nodeB.x, 2) + Math.pow(nodeA.y - nodeB.y, 2));
 }
 
 function changeNodeDir(node)
@@ -1316,6 +1332,23 @@ function canvasMouseMoved(e)
 		
 		moveNode(draggedElem, elemOffsetX, elemOffsetY);
 
+		if(dragTransplant)
+		{
+			for(let i in mindMap.nodes)
+			{
+				if(draggedElem == mindMap.nodes[i] || draggedElem.parent == mindMap.nodes[i] || mindMap.nodes[i].transplating){continue;}
+
+				let dist = distance(draggedElem, draggedElem.parent);
+				let curDist = distance(draggedElem, mindMap.nodes[i]);
+
+				if(curDist < dist)
+				{
+					transplateNode(draggedElem, mindMap.nodes[i]);
+					break;
+				}
+			}
+		}
+
 		checkBounds();
 		draw(mindMap);
 		
@@ -1466,6 +1499,21 @@ function canvasMouseDowned(e)
 		
 		cursorOffset.x = cursor.x - node.x;
 		cursorOffset.y = cursor.y - node.y;
+
+		if(keys['shift'] && node.parent)
+		{
+			for(let i in mindMap.nodes)
+			{
+				mindMap.nodes[i]['transplating'] = false;
+			}
+
+			for(let i in draggedElem.childs)
+			{
+				draggedElem.childs[i]['transplating'] = true;
+			}
+
+			dragTransplant = true;
+		}
 		
 		draw(mindMap);
 		
@@ -1642,6 +1690,7 @@ function bodyKeyUpHandler(e)
 	if(!e.shiftKey)
 	{
 		keys['shift'] = false;
+		dragTransplant = false;
 	}
 
 	if(!e.altKey)
