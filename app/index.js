@@ -35,6 +35,8 @@ let dragWait = false;
 let dragWaitWorkspace = false;
 let dragTransplant = false;
 
+let onFilesDrag = false;
+
 let animTimer;
 let targetView = {x: 0, y: 0, scale: 1}; // For anim
 
@@ -67,6 +69,7 @@ let colors = {};
 colors['baseText'] = '#565656';
 colors['background'] = '#fcfcfc';
 colors['border'] = '#E9E9E9';
+colors['borderCanvas'] = '#9e9e9e';
 colors.branches = ['#e096e9', '#988ee3', '#7aa3e5', '#67d7c4', '#9ed56b', '#ebd95f', '#efa670', '#e68782'];
 // extra = ['#e23e2b', '#a65427', '#ffaa38', '#e8e525', '#69b500', '#0a660d', '#3e8975', '#0da7d3', '#075978', '#272727', '#5f5f5f', '#b4b4b4'];
 
@@ -131,6 +134,7 @@ async function init()
 
 	canvas.addEventListener('drop', canvasFilesDroped);
 	canvas.addEventListener('dragover', canvasFilesDragged);
+	canvas.addEventListener('dragleave', canvasFilesDragLeaveHandler);
 	let loader = $('#uploader');
 	loader.addEventListener('change', loaderChanged);
 
@@ -560,6 +564,8 @@ function draw(mindMap, canvasElem)
 		}
 	}
 
+	if(onFilesDrag){drawCanvasBorder(ctx);}
+
 	if(DEBUG)
 	{
 		ctx.lineWidth = 2;
@@ -749,6 +755,15 @@ function drawSplash(ctx)
 	ctx.textAlign = 'center';
 	ctx.font = 'bold ' + baseSize * mindMap.view.scale + 'px ' + fontFamily;
 	ctx.fillText(splashText, canvas.width / 2, canvas.height / 2);
+}
+
+function drawCanvasBorder(ctx)
+{
+	ctx.strokeStyle = colors['borderCanvas'];
+	ctx.lineWidth = 10;
+	ctx.setLineDash([15, 10]);
+	
+	ctx.strokeRect(0, 0, canvas.width, canvas.height);
 }
 
 function calculateNodeCoords(node, jointNum)
@@ -1747,13 +1762,25 @@ function readerFileLoaded(e, fileName)
 function canvasFilesDroped(e)
 {
 	e.preventDefault();
-
+	onFilesDrag = false;
 	loadFiles(e.dataTransfer.files);
 }
 
 function canvasFilesDragged(e)
 {
 	e.preventDefault();
+	if(!onFilesDrag)
+	{
+		onFilesDrag = true;
+		draw(mindMap);
+	}
+}
+
+function canvasFilesDragLeaveHandler(e)
+{
+	e.preventDefault();
+	onFilesDrag = false;
+	draw(mindMap);
 }
 
 function loadFiles(files)
