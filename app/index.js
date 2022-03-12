@@ -54,6 +54,7 @@ let mindMapBox = {x: 0, y: 0, width: 0, height: 0};
 let bufferOfView = baseSize * 2;
 
 let lastActiveNode = -1; // last active node index
+let lastEvent;
 
 let placeholder = 'Press to edit';
 let defaultName = 'New mindmap';
@@ -580,10 +581,10 @@ function drawRootNode(ctx, node)
 	if(!(renameMode && renamedNode == node))
 	{
 		// Draw connectors ("+" circles)
-		drawConnector(ctx, point.x, point.y - node.boundbox.height / 2 * mindMap.view.scale, node.color, node.jointState == 0);
-		drawConnector(ctx, point.x + node.boundbox.width / 2 * mindMap.view.scale, point.y, node.color, node.jointState == 1);
-		drawConnector(ctx, point.x, point.y + node.boundbox.height / 2 * mindMap.view.scale, node.color, node.jointState == 2);
-		drawConnector(ctx, point.x - node.boundbox.width / 2 * mindMap.view.scale, point.y, node.color, node.jointState == 3);
+		drawConnector(ctx, point.x, point.y - node.boundbox.height / 2 * mindMap.view.scale, node.color, node.jointState == 0 ? 1 : 0);
+		drawConnector(ctx, point.x + node.boundbox.width / 2 * mindMap.view.scale, point.y, node.color, node.jointState == 1 ? 1 : 0);
+		drawConnector(ctx, point.x, point.y + node.boundbox.height / 2 * mindMap.view.scale, node.color, node.jointState == 2 ? 1 : 0);
+		drawConnector(ctx, point.x - node.boundbox.width / 2 * mindMap.view.scale, point.y, node.color, node.jointState == 3 ? 1 : 0);
 	}
 }
 
@@ -594,7 +595,7 @@ function drawNode(ctx, node)
 	let state = node.state;
 
 	// Draw connector
-	drawConnector(ctx, point.x, point.y, node.color, state == 1);
+	drawConnector(ctx, point.x, point.y, node.color, state);
 	
 	// Draw text
 	drawNodeText(ctx, node);
@@ -699,8 +700,10 @@ function drawNodeText(ctx, node)
 	}
 }
 
-function drawConnector(ctx, x, y, color, active)
+function drawConnector(ctx, x, y, color, state)
 {
+	let active = state > 0;
+
 	// Draw circle
 	ctx.beginPath();
 
@@ -721,10 +724,15 @@ function drawConnector(ctx, x, y, color, active)
 	ctx.closePath();
 
 	// Draw text
-	if(active)
+	ctx.fillStyle = colors['background'];
+	if(state == 1){drawPlus(ctx, x, y, r * 1.5 * mindMap.view.scale, baseSize / 5 * mindMap.view.scale);}
+	else if(state == 2)
 	{
-		ctx.fillStyle = colors['background'];
-		drawPlus(ctx, x, y, r * 1.5 * mindMap.view.scale, baseSize / 5 * mindMap.view.scale);
+		ctx.font = 'bold ' + r * 2 * mindMap.view.scale + 'px ' + fontFamily;
+		ctx.textBaseline = 'middle';
+		ctx.textAlign = 'center';
+
+		ctx.fillText('~', x, y);
 	}
 }
 
@@ -994,7 +1002,7 @@ function completeDrag(e, reset)
 
 		dragTransplant = false;
 
-		draw(mindMap);
+		canvasMouseMoved(e);
 
 		return;
 	}
@@ -1056,6 +1064,16 @@ function transplateNode(branch, node)
 function distance(nodeA, nodeB)
 {
 	return Math.sqrt(Math.pow(nodeA.x - nodeB.x, 2) + Math.pow(nodeA.y - nodeB.y, 2));
+}
+
+function dfsNode(node, action)
+{
+	action(node);
+
+	for(let i in node.childs)
+	{
+		dfsNode(node.childs[i], action)
+	}
 }
 
 function changeNodeDir(node)
@@ -1254,6 +1272,8 @@ function canvasMouseMoved(e)
 		initDragWorkspace();
 	}
 
+	lastEvent = e;
+
 	let x = e.offsetX;
 	let y = e.offsetY;
 
@@ -1336,7 +1356,7 @@ function canvasMouseMoved(e)
 		{
 			for(let i in mindMap.nodes)
 			{
-				if(draggedElem == mindMap.nodes[i] || draggedElem.parent == mindMap.nodes[i] || mindMap.nodes[i].transplating){continue;}
+				if(mindMap.nodes[i].transplant || draggedElem.parent == mindMap.nodes[i]){continue;}
 
 				let dist = distance(draggedElem, draggedElem.parent);
 				let curDist = distance(draggedElem, mindMap.nodes[i]);
@@ -1348,6 +1368,7 @@ function canvasMouseMoved(e)
 				}
 			}
 		}
+		else if(draggedElem.state == 2){draggedElem.state = 1;}
 
 		checkBounds();
 		draw(mindMap);
@@ -1395,7 +1416,9 @@ function canvasMouseMoved(e)
 			{
 				lastActiveNode = i;
 
-				mindMap.nodes[i].state = 1;
+				if(keys['shift']){mindMap.nodes[i].state = 2;}
+				else{mindMap.nodes[i].state = 1;}
+
 				canvas.style.cursor = 'pointer';
 				dragState = 1;
 				
@@ -1500,17 +1523,15 @@ function canvasMouseDowned(e)
 		cursorOffset.x = cursor.x - node.x;
 		cursorOffset.y = cursor.y - node.y;
 
+		// If transplant mode, mark child nodes as not connectable
 		if(keys['shift'] && node.parent)
 		{
 			for(let i in mindMap.nodes)
 			{
-				mindMap.nodes[i]['transplating'] = false;
+				mindMap.nodes[i]['transplant'] = false;
 			}
 
-			for(let i in draggedElem.childs)
-			{
-				draggedElem.childs[i]['transplating'] = true;
-			}
+			dfsNode(draggedElem, function(node){node['transplant'] = true;});
 
 			dragTransplant = true;
 		}
@@ -1638,6 +1659,7 @@ function bodyKeyDownHandler(e)
 	if(e.shiftKey)
 	{
 		keys['shift'] = true;
+		canvasMouseMoved(lastEvent);
 	}
 
 	if(e.altKey)
@@ -1691,6 +1713,7 @@ function bodyKeyUpHandler(e)
 	{
 		keys['shift'] = false;
 		dragTransplant = false;
+		canvasMouseMoved(lastEvent);
 	}
 
 	if(!e.altKey)
