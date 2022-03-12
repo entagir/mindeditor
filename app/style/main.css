@@ -295,3 +295,8 @@ animation: cssload-spin 575ms infinite linear;
 {
 100%{ transform: rotate(360deg); transform: rotate(360deg); }
 }
+
+.loader.hidden
+{
+display: none;
+}

@@ -65,6 +65,8 @@ let splashText = 'Use Double Click to add nodes';
 let localSamples = {};
 let systemFiles = {'Menu': menuJson};
 
+let loadingSamples = false;
+
 let colors = {};
 colors['baseText'] = '#565656';
 colors['background'] = '#fcfcfc';
@@ -190,11 +192,12 @@ async function loadFromUrl(url)
 	return json;
 }
 
-async function loadLocalFiles(files, storageName, fileList)
+async function loadLocalFiles(fileList, storageName)
 {
-	// let lst = await api.getFileList('defaultSamples');
+	let files = [];
 	let staticFiles = JSON.parse(localStorage.getItem(storageName)) || {};
 	let onLocalStorageUpdate = false;
+	
 	for(let fileItem of fileList)
 	{
 		let staticFile = staticFiles[fileItem.name];
@@ -217,6 +220,8 @@ async function loadLocalFiles(files, storageName, fileList)
 	{
 		localStorage.setItem(storageName, JSON.stringify(staticFiles));
 	}
+
+	return files;
 }
 
 function initColorsDialog(colors)
@@ -234,29 +239,22 @@ function initColorsDialog(colors)
 	}
 }
 
-async function initFiles()
+async function loadSamples()
 {
-	// Load system files from localStorage or server
-	let localFilesPromises = [];
-
+	// Samples list init
 	let localSamplesList = [];
 	localSamplesList.push({name: 'Palms', url: 'static/samples/Palms.json', version: 0});
 	localSamplesList.push({name: 'MindEditor', url: 'static/samples/MindEditor.json', version: 0});
-	localFilesPromises.push(loadLocalFiles(localSamples, 'localSamples', localSamplesList));
 
-	let systemFilesList = [];
-	systemFilesList.push({name: 'Help', url: 'static/system/Help.json', version: 0});
-	localFilesPromises.push(loadLocalFiles(systemFiles, 'systemFiles', systemFilesList));
+	localSamples = await loadLocalFiles(localSamplesList, 'localSamples');
 
-	await Promise.all(localFilesPromises);
-
-	// Help map init
-	mindMaps['help'] = new MindMap('help', systemFiles['Help'].mindMap);
-	mindMaps['help'].editable = false;
-
-	// Samples list init
 	let fileList = $('#file-list-samples');
 	fileList.innerHTML = '';
+
+	if(localSamples == {})
+	{;
+		fileList.innerHTML = 'Not samples';
+	}
 
 	for(let i in localSamples)
 	{
@@ -272,6 +270,18 @@ async function initFiles()
 		});
 		fileList.appendChild(button);
 	}
+}
+
+async function initFiles()
+{
+	// Load system files from localStorage or server
+	let systemFilesList = [];
+	systemFilesList.push({name: 'Help', url: 'static/system/Help.json', version: 0});
+	systemFiles = await loadLocalFiles(systemFilesList, 'systemFiles');
+
+	// Help map init
+	mindMaps['help'] = new MindMap('help', systemFiles['Help'].mindMap);
+	mindMaps['help'].editable = false;
 
 	onLoading = false;
 }
@@ -2144,6 +2154,16 @@ function openHelp()
 
 function openSamples()
 {
+	if(!loadingSamples)
+	{
+		loadingSamples = true;
+		$('#dialog-open__loading-animation').classList.toggle('hidden', false);
+		loadSamples().finally(function()
+		{
+			loadingSamples = false;
+			$('#dialog-open__loading-animation').classList.toggle('hidden', true);
+		});
+	}
 	showDialog('open');
 }
 
