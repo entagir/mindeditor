@@ -1,3 +1,60 @@
+class MindFile
+{
+	constructor(fileListItem, storageName=null, load)
+	{
+		this.name = fileListItem.name;
+		this.version = fileListItem.version;
+		this.path = fileListItem.path;
+		this.editable = fileListItem.editable === undefined ? true : fileListItem.editable;
+		this.storageName = storageName;
+
+		if(load){this.mindMap = this.load();}
+	}
+
+	async getMap()
+	{
+		// mindMap getter
+		this.mindMap = await this.load();
+		return this.load();
+	}
+
+	async load()
+	{
+		if(!this.mindMap)
+		{
+			let file;
+
+			let localFile = JSON.parse(localStorage.getItem(this.storageName));
+
+			if(this.storageName && localFile && localFile.version == this.version)
+			{
+				file = localFile;
+			}
+			else
+			{
+				// For URL path!
+				// Load from URL
+				let res = await fetch(this.path);
+				file = await res.json();
+				file.version = this.version;
+
+				// Update localStorage
+				localStorage.setItem(this.storageName, JSON.stringify(file));
+			}
+
+			let loadedMap = new MindMap(this.name, file.mindMap);
+			loadedMap.editable = this.editable;
+			this.editorSettings = file.editorSettings;
+
+			return loadedMap;
+		}
+		else
+		{
+			return await this.mindMap;
+		}
+	}
+}
+
 class MindMap
 {
 	constructor(name, source)
@@ -131,4 +188,4 @@ class Node
 	}
 }
 
-export {MindMap};
+export {MindFile, MindMap};

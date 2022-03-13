@@ -2,10 +2,8 @@ import './style/main.css'
 import './style/ui.css'
 import './favicon.ico'
 
-import {MindMap} from './MindMap'
+import {MindFile, MindMap} from './MindMap'
 import {Tlaloc} from './Tlaloc'
-
-import menuJson from './system/Menu.json'
 
 const scaleCoef = 1.1; // For mouse whell
 const animInterval = 1000 / 120; // Micro sec
@@ -62,8 +60,16 @@ let placeholder = 'Press to edit';
 let defaultName = 'New mindmap';
 let splashText = 'Use Double Click to add nodes';
 
-let localSamples = {};
-let systemFiles = {'Menu': menuJson};
+let systemFilesList = 
+{
+	'menu': {name: 'Menu', path: 'static/system/Menu.json', version: 0, editable: false},
+	'help':	{name: 'Help', path: 'static/system/Help.json', version: 0, editable: false},
+};
+let samplesFilesList = 
+[
+	{name: 'Palms', path: 'static/samples/Palms.json', version: 0},
+	{name: 'MindEditor', path: 'static/samples/MindEditor.json', version: 0},
+];
 
 let loadingSamples = false;
 
@@ -73,7 +79,7 @@ colors['background'] = '#fcfcfc';
 colors['border'] = '#E9E9E9';
 colors['borderCanvas'] = '#9e9e9e';
 colors.branches = ['#e096e9', '#988ee3', '#7aa3e5', '#67d7c4', '#9ed56b', '#ebd95f', '#efa670', '#e68782'];
-// extra = ['#e23e2b', '#a65427', '#ffaa38', '#e8e525', '#69b500', '#0a660d', '#3e8975', '#0da7d3', '#075978', '#272727', '#5f5f5f', '#b4b4b4'];
+// colors.extra = ['#e23e2b', '#a65427', '#ffaa38', '#e8e525', '#69b500', '#0a660d', '#3e8975', '#0da7d3', '#075978', '#272727', '#5f5f5f', '#b4b4b4'];
 
 let keys = {'ctrl': false, 'shift': false, 'alt': false};
 
@@ -104,8 +110,6 @@ window.onresize = function()
 
 async function init()
 {
-	$('#loading-animation').classList.toggle('hidden', false);
-
 	let menu = Tlaloc.menu('menu');
 	menu.addItem('MindEditor', function(){openMenu();});
 	menu.addItem('New', function(){newFile();});
@@ -116,7 +120,6 @@ async function init()
 	tabs = Tlaloc.tabs('tabs');
 
 	initColorsDialog(colors.branches);
-	let filesPromise = initFiles();
 
 	document.body.addEventListener('mouseleave', canvasMouseLeaved);
 
@@ -171,57 +174,14 @@ async function init()
 
 	setFontFamily('Arial');
 
-	// Menu map init
-	mindMaps['start'] = new MindMap('start', systemFiles['Menu'].mindMap);
-	mindMaps['start'].editable = false;
-	if(!mindMap){selectMindMap('start');}
+	// Help map init
+	mindMaps['help'] = new MindFile(systemFilesList['help'], 'system_help');
 
-	loadTempMaps();
-	await filesPromise;
-
-	$('#loading-animation').classList.toggle('hidden', true);
-}
-
-async function loadFromUrl(url)
-{
-	let res = await fetch(url);
-	let json = await res.json();
-
-	if(DEBUG){console.info('Loaded: ' + url);}
-
-	return json;
-}
-
-async function loadLocalFiles(fileList, storageName)
-{
-	let files = [];
-	let staticFiles = JSON.parse(localStorage.getItem(storageName)) || {};
-	let onLocalStorageUpdate = false;
+	// Menu map init and select
+	mindMaps['menu'] = new MindFile(systemFilesList['menu'], 'system_menu', true);
 	
-	for(let fileItem of fileList)
-	{
-		let staticFile = staticFiles[fileItem.name];
-
-		if(staticFile && staticFile.version == fileItem.version)
-		{
-			if(DEBUG){console.info('Opened: ' + fileItem.name);}
-		}
-		else
-		{
-			staticFiles[fileItem.name] = await loadFromUrl(fileItem.url);
-			if(!staticFiles[fileItem.name].version){staticFiles[fileItem.name].version = fileItem.version;}
-			onLocalStorageUpdate = true;
-		}
-
-		files[fileItem.name] = staticFiles[fileItem.name];
-	}
-
-	if(onLocalStorageUpdate)
-	{
-		localStorage.setItem(storageName, JSON.stringify(staticFiles));
-	}
-
-	return files;
+	selectMindMap('menu');
+	loadTempMaps();
 }
 
 function initColorsDialog(colors)
@@ -241,49 +201,28 @@ function initColorsDialog(colors)
 
 async function loadSamples()
 {
-	// Samples list init
-	let localSamplesList = [];
-	localSamplesList.push({name: 'Palms', url: 'static/samples/Palms.json', version: 0});
-	localSamplesList.push({name: 'MindEditor', url: 'static/samples/MindEditor.json', version: 0});
-
-	localSamples = await loadLocalFiles(localSamplesList, 'localSamples');
+	// Need samples list init
 
 	let fileList = $('#file-list-samples');
 	fileList.innerHTML = '';
 
-	if(localSamples == {})
-	{;
+	if(samplesFilesList == {})
+	{
 		fileList.innerHTML = 'Not samples';
 	}
 
-	for(let i in localSamples)
+	for(let i in samplesFilesList)
 	{
 		let button = document.createElement('button');
-		button.innerHTML = i;
-		button.setAttribute('data-name', i);
+		button.innerHTML = samplesFilesList[i].name;
 		button.addEventListener('click', function(e)
 		{
 			showDialog('');
-
-			loadMindMap(localSamples[i], i);
+			addMindMap(new MindFile(samplesFilesList[i], 'samples_' + samplesFilesList[i].path));
 
 		});
 		fileList.appendChild(button);
 	}
-}
-
-async function initFiles()
-{
-	// Load system files from localStorage or server
-	let systemFilesList = [];
-	systemFilesList.push({name: 'Help', url: 'static/system/Help.json', version: 0});
-	systemFiles = await loadLocalFiles(systemFilesList, 'systemFiles');
-
-	// Help map init
-	mindMaps['help'] = new MindMap('help', systemFiles['Help'].mindMap);
-	mindMaps['help'].editable = false;
-
-	onLoading = false;
 }
 
 function checkBounds()
@@ -1766,7 +1705,9 @@ function readerFileLoaded(e, fileName)
 	let fileAsText = e.target.result;
 	let file = JSON.parse(fileAsText);
 
-	loadMindMap(file, fileName);
+	let mindFile = new MindFile({name: fileName, version: 0});
+	mindFile.mindMap = new MindMap(fileName, file['mindMap']);
+	addMindMap(mindFile);
 }
 
 function canvasFilesDroped(e)
@@ -1903,13 +1844,6 @@ function selectColor(obj)
 	colorPickerChanged();
 
 	showContextMenu();
-}
-
-function loadMindMap(file, name)
-{
-	addMindMap(name, file['mindMap']);
-
-	setViewAuto(file);
 }
 
 function renameAreaInputed()
@@ -2063,15 +1997,15 @@ function setViewAuto(file)
 
 	if(mindMap.nodes.flat().length == 0){return;} 
 
-	if(file && file['editorSetings'] && file['editorSetings']['centerOfView'])
+	if(file && file['editorSettings'] && file['editorSettings']['centerOfView'])
 	{
 		// If exist settings of view in file
 		// Set view from file
-		let centerOfView = file['editorSetings']['centerOfView'];
+		let centerOfView = file['editorSettings']['centerOfView'];
 
 		mindMap.view.x = canvas.width / 2 - centerOfView.x;
 		mindMap.view.y = canvas.height / 2 - centerOfView.y;
-		mindMap.view.scale = file['editorSetings']['scale']; // Need setter
+		mindMap.view.scale = file['editorSettings']['scale']; // Need setter
 	}
 	else if(mindMapBox.width + bufferOfView > canvas.width || mindMapBox.height + bufferOfView > canvas.height)
 	{
@@ -2144,7 +2078,7 @@ function getCenterOfView(mindMap)
 
 function openMenu()
 {
-	selectMindMap('start');
+	selectMindMap('menu');
 }
 
 function openHelp()
@@ -2154,6 +2088,7 @@ function openHelp()
 
 function openSamples()
 {
+	// Init samples list
 	if(!loadingSamples)
 	{
 		loadingSamples = true;
@@ -2164,15 +2099,19 @@ function openSamples()
 			$('#dialog-open__loading-animation').classList.toggle('hidden', true);
 		});
 	}
+
 	showDialog('open');
 }
 
-function newFile()
+async function newFile()
 {
-	addMindMap();
-	// Check canvas width
-	addNode(mindMap, canvas.width/2, canvas.height/2);
-	// Need refactoring
+	let mindFile = new MindFile({name: '', version: 0});
+	mindFile.mindMap = new MindMap();
+
+	addNode(mindFile.mindMap, 0, 0);
+
+	await addMindMap(mindFile);
+
 	checkBounds();
 	draw(mindMap);
 }
@@ -2184,7 +2123,7 @@ function loadFromFile()
 
 function saveFile()
 {
-	if(mindMapNum != 'start' && mindMapNum != 'help')
+	if(mindMapNum != 'menu' && mindMapNum != 'help')
 	{
 		showContextMenu();
 
@@ -2214,7 +2153,7 @@ function saveToFile()
 	let fileAsText = JSON.stringify(file, undefined, 2);
 	let downloader = $('#downloader');
 
-	downloader.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(fileAsText);
+	downloader.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(fileAsText);///
 	downloader.download = (mindMap.name || defaultName) + '.json';
 
 	downloader.click();
@@ -2236,7 +2175,8 @@ function closeFile(num)
 		num = mindMapNum;
 	}
 
-	if(num == 'start' || num == 'help'){return;}
+	if(num == 'menu'){return;}
+	if(num == 'help'){openMenu();return;}
 
 	if(mindMaps.flat().length > 1)
 	{
@@ -2268,7 +2208,7 @@ function closeFile(num)
 		delete(mindMaps[num]);
 		tabs.removeTab(tabs.tabs[num]);
 
-		selectMindMap('start');
+		selectMindMap('menu');
 	}
 }
 
@@ -2278,39 +2218,48 @@ function getFileFromMap(mindMap, view)
 	{
 		mindMap: mindMap.getStruct(),
 		
-		editorSetings: {},
+		editorSettings: {},
 	};
 
 	if(view)
 	{
-		file.editorSetings['centerOfView'] = getCenterOfView(mindMap);
-		file.editorSetings['scale'] = mindMap.view.scale;
+		file.editorSettings['centerOfView'] = getCenterOfView(mindMap);
+		file.editorSettings['scale'] = mindMap.view.scale;
 	}
 
 	return file;
 }
 
-function addMindMap(name, source)
+async function addMindMap(mindFile)
 {
-	mindMaps.push(new MindMap(name, source));
+	$('#work__loading-animation').classList.toggle('hidden', false);
+	onLoading = true;
+	canvas.width = canvas.width;
+
+	mindMaps.push(mindFile);
 
 	let num = mindMaps.length - 1;
+	let mindMap = await mindFile.getMap();
 
-	// Init nodes direction
-	for(let node of mindMaps[num].nodes)
+	// Init nodes direction (introduce this code to checkBuild and remove loading code)
+	for(let node of mindMap.nodes)
 	{
 		if(node.parent && node.parent.x > node.x){node.dir = 'left';}
 		else{node.dir = 'right';}
 	}
 
-	tabs.addTab(name || defaultName, function()
+	tabs.addTab(mindFile.name || defaultName, function()
 	{
 		if(mindMapNum == num){showDialog('rename');}
 
 		selectMindMap(num);
 	});
 
-	selectMindMap(num);
+	await selectMindMap(num);
+	setViewAuto(mindFile);
+
+	$('#work__loading-animation').classList.toggle('hidden', true);
+	onLoading = false;
 }
 
 function addNode(mindMap, x, y, name, joint, parent, color)
@@ -2347,21 +2296,22 @@ function contextAddRoot()
 	showContextMenu();
 }
 
-function selectMindMap(num)
+async function selectMindMap(num)
 {
+	$('#work__loading-animation').classList.toggle('hidden', false);
+	onLoading = true;
+
 	if(renameMode){completeRename();}
 
 	resetLastActiveNode();
 	lastActiveNode = -1;
-
-	mindMap = mindMaps[num];
 
 	canvas.width = canvas.clientWidth;
 	canvas.height = canvas.clientHeight;
 
 	mindMapNum = num;
 
-	if(num == 'start')
+	if(num == 'menu')
 	{
 		tabs.changeTab();
 	}
@@ -2370,9 +2320,15 @@ function selectMindMap(num)
 		tabs.changeTab(tabs.tabs[num]);
 	}
 
+	let preMindMap = await mindMaps[num].getMap();
+
+	if(mindMapNum != num){return;}
+
+	mindMap = preMindMap;
+
 	checkBounds();
 
-	if(num == 'start' || num == 'help')
+	if(num == 'menu' || num == 'help')
 	{
 		setViewAuto();
 	}
@@ -2380,9 +2336,12 @@ function selectMindMap(num)
 	{
 		draw(mindMap);
 	}
+	
+	$('#work__loading-animation').classList.toggle('hidden', true);
+	onLoading = false;
 }
 
-function loadTempMaps()
+async function loadTempMaps()
 {
 	if(localStorage.temp)
 	{
@@ -2390,10 +2349,13 @@ function loadTempMaps()
 
 		for(let i in temp['files'])
 		{
-			loadMindMap(temp['files'][i].file, temp['files'][i].name);
+			let mindFile = new MindFile({name: temp['files'][i].name, version: 0});
+			mindFile.mindMap = new MindMap(temp['files'][i].name, temp['files'][i].file.mindMap);
+			mindFile.editorSettings = temp['files'][i].file.editorSettings;
+			await addMindMap(mindFile);
 		}
 
-		if(temp['selected'] != 'start' && temp['selected'] != 'help'){selectMindMap(temp['selected']);}
+		selectMindMap(temp['selected']);
 	}
 }
 
@@ -2408,15 +2370,15 @@ function saveTempMaps()
 
 	let temp = {};
 	temp['files'] = [];
-	temp['selected'] = 'start';
+	temp['selected'] = mindMapNum;
 
 	for(let i in mindMaps)
 	{
-		if(i == 'start' || i == 'help'){continue;}
+		if(i == 'menu' || i == 'help'){continue;}
 
-		let file = getFileFromMap(mindMaps[i], true);
+		let file = getFileFromMap(mindMaps[i].mindMap, true);
 
-		temp['files'].push({file: file, name: mindMaps[i].name});
+		temp['files'].push({file: file, name: mindMaps[i].mindMap.name});
 
 		if(mindMapNum == i)
 		{
