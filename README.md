@@ -1,6 +1,6 @@
 <h1 align="center">MindEditor</h1>
 
-<img src="https://user-images.githubusercontent.com/64076597/157013751-cc060ba8-9ae5-42dc-a69c-e2500c4744af.png">
+<img src="https://entagir.ru/img/mind.png">
 
 
 <h2 align="center"><a  href="https://mind.entagir.ru">mind.entagir.ru</a></h2>
