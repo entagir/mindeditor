@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<meta name="viewport" content="width=device-width; initial-scale=1.0">
 
-	<link href="favicon.ico" rel="icon" type="image/png" >
+	<link href="favicon.ico" rel="icon" type="image/png">
 
 	<title>MindEditor</title>
 </head>
+
 <body>
 	<div id="cont">
 		<div id="work">
@@ -45,10 +47,12 @@
 					<button id="context-canvas__add-root">Add node</button>
 					<button id="context-canvas__save">Save mind map</button>
 					<button id="context-canvas__rename">Rename mind map</button>
+					<button id="context-canvas__share">Share</button>
+					<button id="context-canvas__delete">Delete</button>
 				</div>
 			</div>
 
-			<form style="display: none;">
+			<form class="none">
 				<input type="file" id="uploader" accept=".json" multiple>
 			</form>
 		</div>
@@ -68,6 +72,7 @@
 				<div>
 					<input id="input-save" type="text" autocomplete="off">
 					<button id="button-save">Download</button>
+					<button id="button-save-remote">Save remote</button>
 				</div>
 				<div><a id="button-image" href="">Download image</a></div>
 			</form>
@@ -78,9 +83,53 @@
 				<div id="dialog-open__loading-animation" class="loader hidden">
 					<div class="cssload-speeding-wheel"></div>
 				</div>
-				<div id="file-list-samples"></div>
+				<div id="file-list-samples" class="file-list"></div>
+			</form>
+		</div>
+
+		<div id="dialog-connections" class="top">
+			<div id="dialog-connections-info">
+				<form class="form-grid">
+					<input id="input-login-info" type="text" disabled>
+					<button id="button-logout">Logout</button>
+				</form>
+			</div>
+
+			<div id="dialog-connections-signin">
+				<form id="form-connect-signin" class="form-grid">
+					<input class="input-login" type="text" placeholder="login">
+					<input class="input-password" type="password" placeholder="password">
+					<button id="button-connect">Connect</button>
+					<button id="button-signup">Sign up</button>
+				</form>
+			</div>
+
+			<div id="dialog-connections-signup">
+				<form id="form-connect-signup" class="form-grid">
+					<input class="input-login" type="text" placeholder="login">
+					<input class="input-password" type="password" placeholder="password">
+					<button id="button-register">Register</button>
+					<button id="button-signin">Sign in</button>
+				</form>
+			</div>
+		</div>
+
+		<div id="dialog-share" class="top">
+			<form>
+				<input id="input-share" type="text" readonly>
+				<button id="button-share">Copy link</button>
+			</form>
+		</div>
+
+		<div id="dialog-open-remote">
+			<form>
+				<div id="dialog-open-remote__loading-animation" class="loader hidden">
+					<div class="cssload-speeding-wheel"></div>
+				</div>
+				<div id="file-list" class="file-list"></div>
 			</form>
 		</div>
 	</div>
 </body>
+
 </html>

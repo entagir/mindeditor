@@ -1,12 +1,18 @@
+import { darkColor, opacityColor } from '../Utils'
+
 class MindFile {
     constructor(fileListItem, storageName = null, load) {
         this.name = fileListItem.name;
         this.version = fileListItem.version || 0;
+        this.id = fileListItem.id;
+        this.service = fileListItem.service;
         this.path = fileListItem.path;
         this.editable = fileListItem.editable === undefined ? true : fileListItem.editable;
         this.storageName = storageName;
 
-        if (load) { this.mindMap = this.load(); }
+        if (load) {
+            this.mindMap = this.load();
+        }
     }
 
     async getMap() {
@@ -26,14 +32,14 @@ class MindFile {
             } else {
                 // For URL path!
                 // Load from URL
-                let res = await fetch(this.path);
+                const res = await fetch(this.path);
                 file = await res.json();
                 file.version = this.version;
 
                 // Update localStorage
                 if (this.storageName) {
-					localStorage.setItem(this.storageName, JSON.stringify(file));
-				}
+                    localStorage.setItem(this.storageName, JSON.stringify(file));
+                }
             }
 
             let loadedMap = new MindMap(this.name, file.mindMap);
@@ -60,13 +66,20 @@ class MindMap {
         }
     }
 
-    addNode(x, y, name, joint, parent, color, colorDark) {
+    addNode(x, y, name, joint, parent, color, colorDark, colorLight) {
         if (parent) {
-            let node = new Node(x, y, name, joint, parent, color, colorDark);
+            if (color) {
+                colorDark = colorDark || darkColor(color, 0.9);
+                colorLight = colorLight || opacityColor(color, 0.4);
+            }
+
+            const node = new Node(x, y, name, joint, parent, color, colorDark, colorLight);
             if (parent.parent) {
                 node.dir = parent.dir;
             } else {
-                if (joint == 3) { node.dir = 'left'; }
+                if (joint == 3) {
+                    node.dir = 'left';
+                }
             }
 
             this.nodes.push(node);
@@ -74,7 +87,7 @@ class MindMap {
 
             return node;
         } else {
-            let root = new Node(x, y, name, undefined, undefined, color);
+            const root = new Node(x, y, name, undefined, undefined, color);
 
             this.nodes.push(root);
 
@@ -129,8 +142,19 @@ class MindMap {
         }
 
         function addPlainNode(mindMap, node, parent) {
-            let currentNode = mindMap.addNode(node.x, node.y, node.name, node.joint, parent, node.color);
+            const currentNode = mindMap.addNode(node.x, node.y, node.name, node.joint, parent, node.color);
             currentNode.action = node.action;
+
+            if (currentNode.parent && currentNode.parent.x > currentNode.x) {
+                currentNode.dir = 'left';
+            } else {
+                currentNode.dir = 'right';
+            }
+
+            if (node.color) {
+                node.colorDark = darkColor(node.color, 0.9);
+                node.colorLight = opacityColor(node.color, 0.4);
+            }
 
             for (let i in node.nodes) {
                 addPlainNode(mindMap, node.nodes[i], currentNode);
@@ -140,7 +164,7 @@ class MindMap {
 }
 
 class Node {
-    constructor(x, y, name = '', joint, parent, color = '', colorDark='') {
+    constructor(x, y, name = '', joint, parent, color = '', colorDark = '', colorLight = '') {
         this.x = x;
         this.y = y;
         this.name = name;
@@ -149,11 +173,27 @@ class Node {
         this.joint = joint;
         this.dir = 'right';
         this.state = 0;
-        this.joint_state = -1;
         this.textbox = {};
         this.boundbox = {};
         this.color = color;
         this.colorDark = colorDark;
+        this.colorLight = colorLight;
+    }
+
+    get x() {
+        return this._x;
+    }
+    set x(val) {
+        //this._x = parseInt(val);
+        this._x = val;
+    }
+
+    get y() {
+        return this._y;
+    }
+    set y(val) {
+        //this._y = parseInt(val);
+        this._y = val;
     }
 }
 

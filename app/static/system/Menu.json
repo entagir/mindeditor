@@ -12,12 +12,29 @@
           "name": "Open mind map",
           "joint": 1,
           "color": "#988ee3",
-          "nodes": [],
+          "nodes": [
+            {
+              "x": 983,
+              "y": 366,
+              "name": "Open file",
+              "color": "#988ee3",
+              "nodes": [],
+              "action": "open"
+            },
+            {
+              "x": 981,
+              "y": 324,
+              "name": "Open remote",
+              "color": "#988ee3",
+              "nodes": [],
+              "action": "open-remote"
+            }
+          ],
           "action": "open"
         },
         {
-          "x": 939.776695296637,
-          "y": 273.22330470336317,
+          "x": 940,
+          "y": 273,
           "name": "New mind map",
           "joint": 1,
           "color": "#67d7c4",
@@ -26,7 +43,7 @@
         },
         {
           "x": 435,
-          "y": 351.00000000000006,
+          "y": 351,
           "name": "Help",
           "joint": 3,
           "color": "#e68782",
@@ -34,8 +51,8 @@
           "action": "help"
         },
         {
-          "x": 433.22330470336306,
-          "y": 272.22330470336317,
+          "x": 433,
+          "y": 272,
           "name": "Samples",
           "joint": 3,
           "color": "#ebd95f",
@@ -50,6 +67,15 @@
           "color": "#9ed56b",
           "nodes": [],
           "action": "git"
+        },
+        {
+          "x": 633,
+          "y": 430,
+          "name": "Sign in",
+          "joint": 2,
+          "color": "#e096e9",
+          "nodes": [],
+          "action": "connect"
         }
       ]
     }

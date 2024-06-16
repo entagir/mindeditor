@@ -1,0 +1,5 @@
+{
+    "scheme": "http",
+    "host": "localhost:8182",
+    "wsSheme": "ws"
+}

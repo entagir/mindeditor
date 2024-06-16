@@ -1,8 +1,8 @@
 // Tlaloc.js
 
-let Tlaloc = {};
+const Tlaloc = {};
 
-let T = Tlaloc;
+const T = Tlaloc;
 
 Tlaloc.menu = function(name)
 {
@@ -226,7 +226,7 @@ class Item
 		{
 			this._checkable = true;
 
-			but.classList.remove('none');
+			but.classList.remove('tlaloc-none');
 			
 			this.setCheck(this._check);
 		}
@@ -234,7 +234,7 @@ class Item
 		{
 			this._checkable = false;
 			
-			but.classList.add('none');
+			but.classList.add('tlaloc-none');
 		}
 	}
 	
@@ -304,7 +304,7 @@ class Item
 	
 	_hide()
 	{
-		this._elem.style.display = 'none';
+		this._elem.style.display = 'tlaloc-none';
 		
 		this._elem.parentElement.firstChild.classList.remove('selected');
 		
@@ -403,7 +403,7 @@ class ContextMenu extends Item
 	{
 		if(this.onContextMenu)
 		{
-			this._elem.style.display = 'none';
+			this._elem.style.display = 'tlaloc-none';
 		
 			this.onContextMenu = false;
 			env.onContextMenu = false;
@@ -581,7 +581,7 @@ class Dialog
 	
 	hide()
 	{
-		this._cont.style.display = 'none';
+		this._cont.style.display = 'tlaloc-none';
 		
 		env.onDialog = false;
 	}
