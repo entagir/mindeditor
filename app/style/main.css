@@ -51,9 +51,28 @@ a:hover {
     width: auto;
 }
 
+#info {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0.5em;
+    border: none;
+    width: auto;
+}
+
+#users > div {
+    width: 1.5rem;
+    height: 1.5rem;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    padding: 0.25rem;
+    margin-left: 0.5em;
+}
+
 .tlaloc-menu-button,
-.tlaloc-tab {
-    padding: 0.65em !important;
+.tlaloc-tab, #users > div {
     color: #565656;
     font-weight: bold;
     font-family: sans-serif;
@@ -62,6 +81,11 @@ a:hover {
     box-shadow: 0 1px 2px rgb(0 0 0 / 10%), 0 0 7px rgb(0 0 0 / 6%);
     border: 1px solid #ccc;
     border-radius: 0.5em;
+}
+
+.tlaloc-menu-button,
+.tlaloc-tab {
+    padding: 0.65em !important;
     margin-right: 0.5em;
 }
 

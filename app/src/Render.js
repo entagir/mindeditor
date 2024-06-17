@@ -1,4 +1,4 @@
-import { DEBUG, project, baseSize, colors, placeholder, fontFamily, dragTransplant, renameMode, onFilesDrag, renamedNode, draggedElem } from './index'
+import { DEBUG, project, baseSize, colors, placeholder, fontFamily, dragTransplant, renameMode, onFilesDrag, renamedNode, draggedElem, mindMapBox } from './index'
 import { changeNodeDir } from './MindMap/Utils'
 
 let splashText = 'Use Double Click to add nodes';

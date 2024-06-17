@@ -1,7 +1,7 @@
 import { colors, unproject, baseSize } from '../index'
 import { darkColor, opacityColor, randomInteger } from '../Utils'
 
-export function addNode(mindMap, x, y, name, joint, parent, color, colorDark, colorLight) {
+export function addNode(id, mindMap, x, y, name, joint, parent, color, colorDark, colorLight) {
     if (!color) {
         if (parent) {
             if (parent.parent) {
@@ -17,7 +17,7 @@ export function addNode(mindMap, x, y, name, joint, parent, color, colorDark, co
     if (!colorDark) colorDark = darkColor(color, 0.9);
     if (!colorLight) colorLight = opacityColor(color, 0.4);
 
-    return mindMap.addNode(x, y, name, joint, parent, color, colorDark, colorLight);
+    return mindMap.addNode({id, x, y, name, joint, parent, color, colorDark, colorLight});
 }
 
 export function moveNode(node, offsetX, offsetY) {
@@ -27,6 +27,16 @@ export function moveNode(node, offsetX, offsetY) {
     for (let i in node.childs) {
         moveNode(node.childs[i], offsetX, offsetY);
     }
+}
+
+export function setColorNode(node, color, colorDark, colorLight) {
+    if (!node.color) {
+        return;
+    }
+
+    node.color = color;
+    node.colorDark = colorDark || darkColor(node.color, 0.9);
+    node.colorLight = colorLight || opacityColor(node.color, 0.4);
 }
 
 export function transplateNode(branch, node) {

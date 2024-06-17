@@ -1,4 +1,4 @@
-import { DEBUG, user, updateMindFileHandler } from './index'
+import { DEBUG, user, updateMindFileHandler, updateMindFileEventHandler, updateMindFileUsersHandler } from './index'
 const Config = require('./Config.json')
 
 export async function insertRemoteFile(mindFile, file) {
@@ -112,6 +112,16 @@ export async function unsubscribeFromRemoteFile(mindFile) {
     socket.send(JSON.stringify({
         "action": "unsubscribe",
         "fileId": mindFile.id
+    }));
+}
+
+export async function sendEventForRemoteFile(mindFile, event) {
+    const socket = await socketManager.getSocket();
+
+    socket.send(JSON.stringify({
+        "action": "update",
+        "fileId": mindFile.id,
+        "data": JSON.stringify(event)
     }));
 }
 
@@ -237,7 +247,10 @@ const socketManager = {
 
     getSocket: async function () {
         if (this.socket) {
-            if (this.socket.readyState == 1) return this.socket;
+            if (this.socket.readyState == 1) {
+                return this.socket;
+            }
+
             return this.socket;
         }
 
@@ -245,7 +258,9 @@ const socketManager = {
             let socket = new WebSocket(`${Config.wsSheme}://${Config.host}/api/ws`);
 
             socket.onopen = function (e) {
-                if (DEBUG) console.log("[WS] Connection opened");
+                if (DEBUG) {
+                    console.log("[WS] Connection opened");
+                }
 
                 this.socket = socket;
                 resolve(this.socket);
@@ -253,29 +268,48 @@ const socketManager = {
             };
 
             socket.onmessage = async function (event) {
-                if (DEBUG) console.log(`[WS] Message: ${event.data}`);
+                if (DEBUG) {
+                    console.log(`[WS] Message: ${event.data}`);
+                }
 
                 const text = await event.data.text();
                 const msg = JSON.parse(text);
-                if (DEBUG) console.info(`[WS] Message parsed: ${msg}`);
+                if (DEBUG) {
+                    console.info(`[WS] Message parsed: ${msg}`);
+                }
 
-                if (msg.type == 'update') {
+                if (msg.type === 'update') {
                     updateMindFileHandler(msg);
+                }
+
+                if (msg.type === 'event') {
+                    updateMindFileEventHandler(msg);
+                }
+
+                if (msg.type === 'users') {
+                    updateMindFileUsersHandler(msg);
                 }
             };
 
             socket.onclose = function (event) {
                 if (event.wasClean) {
-                    if (DEBUG) console.log(`[WS] Connection closed cleaned, ${event.code}, ${event.reason}`);
+                    if (DEBUG) {
+                        console.log(`[WS] Connection closed cleaned, ${event.code}, ${event.reason}`);
+                    }
                 } else {
-                    if (DEBUG) console.log('[WS] Connection aborted');
+                    if (DEBUG) {
+                        console.log('[WS] Connection aborted');
+                    }
                 }
 
                 socket = null;
             };
 
             socket.onerror = function (err) {
-                if (DEBUG) console.log(`[WS] Error ${err}`);
+                if (DEBUG) {
+                    console.log(`[WS] Error ${err}`);
+                }
+                
                 reject();
             };
         });

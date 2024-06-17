@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import { darkColor, opacityColor } from '../Utils'
 
 class MindFile {
@@ -59,6 +60,7 @@ class MindMap {
         this.editable = true;
 
         this.nodes = [];
+        this.nodesById = {};
         this.view = { x: 0, y: 0, scale: 1, moveable: true };
 
         if (source) {
@@ -66,30 +68,36 @@ class MindMap {
         }
     }
 
-    addNode(x, y, name, joint, parent, color, colorDark, colorLight) {
-        if (parent) {
-            if (color) {
-                colorDark = colorDark || darkColor(color, 0.9);
-                colorLight = colorLight || opacityColor(color, 0.4);
+    addNode(options) {
+        if (options.id && this.nodesById[options.id]) {
+            return;
+        }
+
+        if (options.parent) {
+            if (options.color) {
+                options.colorDark = options.colorDark || darkColor(options.color, 0.9);
+                options.colorLight = options.colorLight || opacityColor(options.color, 0.4);
             }
 
-            const node = new Node(x, y, name, joint, parent, color, colorDark, colorLight);
-            if (parent.parent) {
+            const node = new Node(options);
+            if (options.parent.parent) {
                 node.dir = parent.dir;
             } else {
-                if (joint == 3) {
+                if (options.joint == 3) {
                     node.dir = 'left';
                 }
             }
 
             this.nodes.push(node);
-            parent.childs.push(node);
+            this.nodesById[node.id] = node;
+            options.parent.childs.push(node);
 
             return node;
         } else {
-            const root = new Node(x, y, name, undefined, undefined, color);
+            const root = new Node(options);
 
             this.nodes.push(root);
+            this.nodesById[root.id] = root;
 
             return root;
         }
@@ -97,21 +105,32 @@ class MindMap {
 
     deleteNode(node, first) {
         if (first && node.parent) {
-            node.parent.childs.splice(node.parent.childs.indexOf(node), 1);
+            const i = node.parent.childs.indexOf(node);
+            
+            if (i !== -1) {
+                node.parent.childs.splice(i, 1);
+            }
         }
 
         for (let i in node.childs) {
             this.deleteNode(node.childs[i]);
         }
 
-        this.nodes.splice(this.nodes.indexOf(node), 1);
+        const i = this.nodes.indexOf(node); 
+
+        if (i !== -1) {
+            this.nodes.splice(i, 1);
+            delete(this.nodesById[node.id]);
+        }
     }
 
     getStruct() {
         let struct = [];
 
         for (let i in this.nodes) {
-            if (this.nodes[i].parent) { continue; }
+            if (this.nodes[i].parent) {
+                continue;
+            }
 
             struct.push(getPlainNode(this.nodes[i]));
         }
@@ -120,6 +139,7 @@ class MindMap {
 
         function getPlainNode(node) {
             let plainNode = {
+                id: node.id,
                 x: node.x,
                 y: node.y,
                 name: node.name,
@@ -142,7 +162,7 @@ class MindMap {
         }
 
         function addPlainNode(mindMap, node, parent) {
-            const currentNode = mindMap.addNode(node.x, node.y, node.name, node.joint, parent, node.color);
+            const currentNode = mindMap.addNode({id: node.id, x: node.x, y: node.y, name: node.name, joint: node.joint, parent: parent, color: node.color});
             currentNode.action = node.action;
 
             if (currentNode.parent && currentNode.parent.x > currentNode.x) {
@@ -164,20 +184,21 @@ class MindMap {
 }
 
 class Node {
-    constructor(x, y, name = '', joint, parent, color = '', colorDark = '', colorLight = '') {
-        this.x = x;
-        this.y = y;
-        this.name = name;
-        this.parent = parent;
+    constructor(options) {
+        this.id = options.id || uuid(),
+        this.x = options.x;
+        this.y = options.y;
+        this.name = options.name || '';
+        this.parent = options.parent;
         this.childs = [];
-        this.joint = joint;
+        this.joint = options.joint;
         this.dir = 'right';
         this.state = 0;
         this.textbox = {};
         this.boundbox = {};
-        this.color = color;
-        this.colorDark = colorDark;
-        this.colorLight = colorLight;
+        this.color = options.color || '';
+        this.colorDark = options.colorDark || '';
+        this.colorLight = options.colorLight || '';
     }
 
     get x() {

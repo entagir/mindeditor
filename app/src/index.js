@@ -6,8 +6,9 @@ import { Loader } from './UI/Loader'
 import { Tlaloc } from './UI/Tlaloc'
 
 import { MindFile, MindMap } from './MindMap/MindMap'
-import { addNode, moveNode, transplateNode, distance, dfsNode, calculateNodeCoords, getCenterOfView } from './MindMap/Utils'
+import { addNode, moveNode, setColorNode, transplateNode, distance, dfsNode, calculateNodeCoords, getCenterOfView } from './MindMap/Utils'
 import { isOverNodeText, isOverNode, isOverRoot, isOverRootJoint } from './MindMap/Utils'
+import { Events } from './MindMap/Events'
 
 import { insertRemoteFile, updateRemoteFile, getRemoteFile, deleteRemoteFile, subscribeToRemoteFile, unsubscribeFromRemoteFile, getRemoteFilesList, logout, login, register, ping } from './Net'
 
@@ -340,6 +341,7 @@ function completeRename(abort) {
         renamedNode.name = renamedNodeText;
     } else {
         renamedNode.name = renameArea.value.trim();
+        Events.generate('rename', mindFileCur, {id: renamedNode.id, name: renamedNode.name});
     }
     checkBounds(mindMap, mindMapBox)
 
@@ -358,6 +360,10 @@ function completeDrag(e, reset) {
         canvasMouseMoveHandler(e);
 
         return;
+    }
+
+    if (dragState == 2) {
+        Events.generate('move', mindFileCur, {id: draggedElem.id, x: draggedElem.x, y: draggedElem.y});
     }
 
     if (dragState == 1 || dragState == 2) {
@@ -383,6 +389,7 @@ function deleteSelectedNode() {
 
     showContextMenu();
 
+    Events.generate('remove', mindFileCur, {id: contextElem.id });
     mindMap.deleteNode(contextElem, true);
     checkBounds(mindMap, mindMapBox)
 
@@ -447,7 +454,8 @@ function canvasClickHandler(e) {
                 if (jointNum != -1) {
                     // Add branch
                     let coords = calculateNodeCoords(mindMap.nodes[i], jointNum);
-                    let addedNode = addNode(mindMap, coords.x, coords.y, '', jointNum, mindMap.nodes[i]);
+                    let addedNode = addNode('', mindMap, coords.x, coords.y, '', jointNum, mindMap.nodes[i]);
+                    Events.generate('add', mindFileCur, {id: addedNode.id, parent: mindMap.nodes[i].id, x: addedNode.x, y: addedNode.y, color: addedNode.color});
 
                     checkBounds(mindMap, mindMapBox)
                     draw(mindMap);
@@ -470,6 +478,7 @@ function canvasClickHandler(e) {
             if (mindMap.editable && !renamed && isOverNode(e, mindMap.nodes[i])) {
                 if (keys['ctrl']) {
                     // Delete branch
+                    Events.generate('remove', mindFileCur, {id: mindMap.nodes[i].id });
                     mindMap.deleteNode(mindMap.nodes[i], true);
 
                     lastActiveNode = -1;
@@ -478,7 +487,8 @@ function canvasClickHandler(e) {
                 } else {
                     // Add sub-branch
                     let coords = calculateNodeCoords(mindMap.nodes[i]);
-                    let addedNode = addNode(mindMap, coords.x, coords.y, '', undefined, mindMap.nodes[i]);
+                    let addedNode = addNode('', mindMap, coords.x, coords.y, '', undefined, mindMap.nodes[i]);
+                    Events.generate('add', mindFileCur, {id: addedNode.id, parent: mindMap.nodes[i].id, x: addedNode.x, y: addedNode.y, color: addedNode.color});
 
                     checkBounds(mindMap, mindMapBox)
                     draw(mindMap);
@@ -680,7 +690,7 @@ function canvasMouseMoveHandler(e) {
             draggedElem.state = 1;
         }
 
-        checkBounds(mindMap, mindMapBox)
+        checkBounds(mindMap, mindMapBox);
         draw(mindMap);
 
         if (renameMode) {
@@ -858,7 +868,8 @@ function canvasDblClickHandler(e) {
 
     // Double click on canvas
     let cursor = unproject({ x: e.offsetX, y: e.offsetY });
-    addNode(mindMap, cursor.x, cursor.y);
+    const addedNode = addNode('', mindMap, cursor.x, cursor.y);
+    Events.generate('add', mindFileCur, {id: addedNode.id, x: addedNode.x, y: addedNode.y, color: addedNode.color});
 
     checkBounds(mindMap, mindMapBox)
     canvasMouseMoveHandler(e);
@@ -991,9 +1002,11 @@ function bodyKeyUpHandler(e) {
 }
 
 function colorPickerChangeHandler() {
-    contextElem.color = $('#color-picker').value;
+    setColorNode(contextElem, $('#color-picker').value);
 
     draw(mindMap);
+
+    Events.generate('color', mindFileCur, {id: contextElem.id, color: contextElem.color});
 }
 
 function loaderChangeHandler() {
@@ -1046,7 +1059,8 @@ function renameAreaMouseOverHandler() {
 
 function contextAddRootHandler() {
     const cursor = unproject({ x: contextCoords.x, y: contextCoords.y });
-    addNode(mindMap, cursor.x, cursor.y);
+    const addedNode = addNode('', mindMap, cursor.x, cursor.y);
+    Events.generate('add', mindFileCur, {id: addedNode.id, x: addedNode.x, y: addedNode.y, color: addedNode.color});
 
     checkBounds(mindMap, mindMapBox)
 
@@ -1116,12 +1130,14 @@ async function menuItemNewHandler() {
     const mindFile = new MindFile({ name: '', version: 0 });
     mindFile.mindMap = new MindMap();
 
-    addNode(mindFile.mindMap, 0, 0);
+    const addedNode = addNode('', mindFile.mindMap, 0, 0);
 
     await openMindFile(mindFile);
 
     checkBounds(mindMap, mindMapBox)
     draw(mindMap);
+
+    Events.generate('add', mindFileCur, {id: addedNode.id, x: addedNode.x, y: addedNode.y, color: addedNode.color});
 }
 
 function menuItemOpenHandler() {
@@ -1482,7 +1498,7 @@ async function openMindFile(mindFile) {
     await mindFile.getMap();
     mindFile.num = num;
 
-    let name = mindFile.name || defaultName;
+    const name = mindFile.name || defaultName;
     tabs.addTab(name, function () {
         if (mindFileNum == num) {
             showDialog('rename');
@@ -1502,6 +1518,8 @@ async function openMindFile(mindFile) {
     workSpaceLoader.stop();
 
     setFileName(mindFileCur, name);
+
+    mindFile.events = [];
 }
 
 async function openMindFileRemote(id) {
@@ -1633,6 +1651,8 @@ async function selectMindFile(num) {
     }
 
     checkMindFile(mindFileCur);
+
+    showMindFileUsers();
 }
 
 async function updateMindFileHandler(msg) {
@@ -1655,6 +1675,85 @@ async function updateMindFileHandler(msg) {
     }
 
     showNotification(`MindMap ${mindFile.name} updated on WS`);
+}
+
+async function updateMindFileEventHandler(msg) {
+    if (msg.type !== 'event' || !msg.data || !msg.fileId || !mindFilesRemote[msg.fileId]) {
+        return;
+    }
+
+    const mindFile = mindFilesRemote[msg.fileId];
+    const event = JSON.parse(msg.data);
+
+    if (event.type === 'file_rename') {
+        setFileName(mindFile, event.name);
+        return;
+    }
+
+    if (event.type === 'add') {
+        const parent = mindFile.mindMap.nodesById[event.parent];
+        if (!parent) return;
+
+        addNode(event.node, mindFile.mindMap, event.x, event.y, '', undefined, parent, event.color);
+    }
+
+    if (!event.node) {
+        return;
+    }
+
+    const node = mindFile.mindMap.nodesById[event.node];
+    if (!node) {
+        return;
+    }
+
+    if (event.type === 'move') {
+        moveNode(node, node.x - event.x, node.y - event.y);
+    }
+
+    if (event.type === 'rename') {
+        node.name = event.name;
+    }
+
+    if (event.type === 'remove') {
+        mindFile.mindMap.deleteNode(node, true);
+    }
+
+    if (event.type === 'color') {
+        setColorNode(node, event.color);
+    }
+
+    if (mindFileNum == mindFile.num) {
+        checkBounds(mindMap, mindMapBox);
+        draw(mindMap);
+    }
+
+    showNotification(`MindMap ${mindFile.name} updated event on WS`);
+
+    if (DEBUG) {
+        console.log('[Event]', event);
+    }
+}
+
+async function updateMindFileUsersHandler(msg) {
+    if (msg.type !== 'users' || !msg.data || !msg.fileId || !mindFilesRemote[msg.fileId]) {
+        return;
+    }
+
+    const mindFile = mindFilesRemote[msg.fileId];
+    const users = msg.data;
+
+    mindFile.usersList = users;
+
+    if (mindFileNum == mindFile.num) {
+        showMindFileUsers();
+    }
+
+    console.log('[Users]', users);
+    showNotification(`MindMap ${mindFile.name} updated users on WS`);
+
+    if (DEBUG) {
+        console.log('[Users]', users);
+    }
 }
 
 function getFileFromMap(mindMap, view) {
@@ -1738,8 +1837,8 @@ async function loadTempUser() {
 
 async function checkCurrentURL() {
     const url = new URL(window.location.href);
-    const id = url.pathname.split('/')[1];
-    //const id = url.searchParams.get('id');
+    //const id = url.pathname.split('/')[1];
+    const id = url.searchParams.get('id');
 
     if (!id || !id.length || mindFilesRemote[id]) {
         return;
@@ -1832,6 +1931,8 @@ function renameMap() {
     const name = $('#input-name').value.trim();
 
     setFileName(mindFileCur, name);
+
+    Events.generate('file_rename', mindFileCur, {name: name});
 }
 
 function saveMap() {
@@ -1921,6 +2022,19 @@ function checkMindFile(mindFile) {
     }
 }
 
+function showMindFileUsers() {
+    $('#users').innerHTML = '';
+
+    if (!mindFileCur.usersList) return;
+
+    for (const user of mindFileCur.usersList) {
+        const userElem = document.createElement('div');
+        userElem.innerHTML = user.token.slice(0, 3);
+        userElem.title = user.token;
+        $('#users').append(userElem);
+    }
+}
+
 
 function initDrag() {
     dragState = 2;
@@ -1938,4 +2052,4 @@ function initDragWorkspace() {
     canvas.style.cursor = 'grabbing';
 }
 
-export { fontSize, fontFamily, baseSize, DEBUG, draggedElem, dragTransplant, onFilesDrag, renameMode, renamedNode, placeholder, colors, user, project, unproject, updateMindFileHandler };
+export { mindMapBox, fontSize, fontFamily, baseSize, DEBUG, draggedElem, dragTransplant, onFilesDrag, renameMode, renamedNode, placeholder, colors, user, mindFilesRemote, project, unproject, updateMindFileHandler, updateMindFileEventHandler, updateMindFileUsersHandler };
