@@ -39,7 +39,7 @@ export function setColorNode(node, color, colorDark, colorLight) {
     node.colorLight = colorLight || opacityColor(node.color, 0.4);
 }
 
-export function transplateNode(branch, node) {
+export function transplantNode(branch, node) {
     branch.parent.childs.splice(branch.parent.childs.indexOf(branch), 1);
 
     branch.parent = node;

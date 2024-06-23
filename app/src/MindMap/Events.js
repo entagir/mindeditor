@@ -4,6 +4,10 @@ import { sendEventForRemoteFile } from '../Net'
 
 class EventsClass {
     generate(eventType, mindFile, options) {
+        if (eventType === 'load') {
+            this._load(mindFile, options);
+        }
+        
         if (eventType === 'move') {
             this._move(mindFile, options);
         }
@@ -24,6 +28,10 @@ class EventsClass {
             this._color(mindFile, options);
         }
 
+        if (eventType === 'transplant') {
+            this._transplant(mindFile, options);
+        }
+
         if (eventType === 'file_rename') {
             this._file_rename(mindFile, options);
         }
@@ -35,6 +43,15 @@ class EventsClass {
         if (mindFile.id && mindFilesRemote[mindFile.id]) {
             sendEventForRemoteFile(mindFile, mindFile.events[mindFile.events.length-1]);
         }
+    }
+
+    _load(mindFile, options) {
+        mindFile.events.push({
+            id: uuid(),
+            type: 'load',
+            content: options.content,
+            user: options.user
+        });
     }
 
     _move(mindFile, options) {
@@ -86,6 +103,16 @@ class EventsClass {
             type: 'color',
             node: options.id,
             color: options.color,
+            user: options.user
+        });
+    }
+
+    _transplant(mindFile, options) {
+        mindFile.events.push({
+            id: uuid(),
+            type: 'transplant',
+            node: options.id,
+            parent: options.parent,
             user: options.user
         });
     }

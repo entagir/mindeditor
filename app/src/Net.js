@@ -1,10 +1,9 @@
 import { DEBUG, user, updateMindFileHandler, updateMindFileEventHandler, updateMindFileUsersHandler } from './index'
 const Config = require('./Config.json')
 
-export async function insertRemoteFile(mindFile, file) {
+export async function insertRemoteFile(mindFile) {
     const bodyJSON = {
         name: mindFile.name,
-        content: JSON.stringify(file)
     };
 
     try {
@@ -17,13 +16,18 @@ export async function insertRemoteFile(mindFile, file) {
             body: JSON.stringify(bodyJSON)
         });
 
-        if (response.status == 201) {
+        if (response.status === 201) {
             const pay = await response.json();
             if (pay.id) {
                 mindFile.id = pay.id;
                 mindFile.userId = user.id;
                 mindFile.version = pay.timestamp;
                 mindFile.onSaved = true;
+
+                // TODO: send events packages (REST)
+                for (const event of mindFile.events) {
+                    sendEventForRemoteFile(mindFile, event);
+                }
             }
         } else {
             //console.error(response.status);
@@ -49,7 +53,7 @@ export async function updateRemoteFile(mindFile, file) {
             body: JSON.stringify(bodyJSON)
         });
 
-        if (response.status == 200) {
+        if (response.status === 200) {
             const pay = await response.json();
             if (pay.timestamp) {
                 mindFile.version = pay.timestamp;
@@ -67,7 +71,21 @@ export async function getRemoteFile(id) {
     try {
         const response = await fetch(`${Config.scheme}://${Config.host}/api/mindmap/${id}`);
 
-        if (response.status == 200) {
+        if (response.status === 200) {
+            return await response.json();
+        } else {
+            //console.error(response.status);
+        }
+    } catch (error) {
+        console.error('err: ', error.message);
+    }
+}
+
+export async function getRemoteFileEvents(id) {
+    try {
+        const response = await fetch(`${Config.scheme}://${Config.host}/api/mindmap/events/${id}`);
+
+        if (response.status === 200) {
             return await response.json();
         } else {
             //console.error(response.status);
@@ -86,7 +104,7 @@ export async function deleteRemoteFile(mindFile) {
             }
         });
 
-        if (response.status == 200) {
+        if (response.status === 200) {
             mindFile.id = null;
             mindFile.onSaved = false;
         } else {
@@ -136,7 +154,7 @@ export async function getRemoteFilesList() {
             },
         });
     
-        if (response.status == 200) {
+        if (response.status === 200) {
             return await response.json();
         } else {
             //console.error(response.status);
@@ -176,7 +194,7 @@ export async function login(login, password) {
             body: JSON.stringify(bodyJSON)
         });
 
-        if (response.status == 200) {
+        if (response.status === 200) {
             const pay = await response.json();
             return pay;
         } else {
@@ -208,7 +226,7 @@ export async function register(login, password) {
             body: JSON.stringify(bodyJSON)
         });
 
-        if (response.status == 200) {
+        if (response.status === 200) {
             const pay = await response.json();
             return pay;
         } else {
@@ -230,15 +248,17 @@ export async function ping(session) {
             }
         });
     
-        if (response.status == 200) {
+        if (response.status === 200) {
             return {session: session};
-        } else if (response.status == 401) {
+        } else if (response.status === 401) {
             return {};
         } else {
             return {err: response.status};
         }
     } catch (err) {
-        return {err};
+        return {
+            err
+        };
     }
 }
 
@@ -247,7 +267,7 @@ const socketManager = {
 
     getSocket: async function () {
         if (this.socket) {
-            if (this.socket.readyState == 1) {
+            if (this.socket.readyState === 1) {
                 return this.socket;
             }
 
@@ -284,6 +304,10 @@ const socketManager = {
 
                 if (msg.type === 'event') {
                     updateMindFileEventHandler(msg);
+                }
+
+                if (msg.type === 'event-done') {
+                    
                 }
 
                 if (msg.type === 'users') {

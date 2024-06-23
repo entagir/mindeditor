@@ -6,11 +6,11 @@ import { Loader } from './UI/Loader'
 import { Tlaloc } from './UI/Tlaloc'
 
 import { MindFile, MindMap } from './MindMap/MindMap'
-import { addNode, moveNode, setColorNode, transplateNode, distance, dfsNode, calculateNodeCoords, getCenterOfView } from './MindMap/Utils'
+import { addNode, moveNode, setColorNode, transplantNode, distance, dfsNode, calculateNodeCoords, getCenterOfView } from './MindMap/Utils'
 import { isOverNodeText, isOverNode, isOverRoot, isOverRootJoint } from './MindMap/Utils'
 import { Events } from './MindMap/Events'
 
-import { insertRemoteFile, updateRemoteFile, getRemoteFile, deleteRemoteFile, subscribeToRemoteFile, unsubscribeFromRemoteFile, getRemoteFilesList, logout, login, register, ping } from './Net'
+import { insertRemoteFile, updateRemoteFile, getRemoteFile, deleteRemoteFile, subscribeToRemoteFile, unsubscribeFromRemoteFile, getRemoteFilesList, logout, login, register, ping, getRemoteFileEvents } from './Net'
 
 import { draw, checkBounds } from './Render'
 import { $, openLink, showNotification } from './Utils'
@@ -48,6 +48,7 @@ let dragEnd = false;
 let dragWait = false;
 let dragWaitWorkspace = false;
 let dragTransplant = false;
+let lastTransplantEvent = {};
 
 let onFilesDrag = false;
 
@@ -364,6 +365,11 @@ function completeDrag(e, reset) {
 
     if (dragState == 2) {
         Events.generate('move', mindFileCur, {id: draggedElem.id, x: draggedElem.x, y: draggedElem.y});
+
+        if (lastTransplantEvent && lastTransplantEvent.lastParent !== lastTransplantEvent.parent) {
+            Events.generate('transplant', mindFileCur, {id: draggedElem.id, parent: lastTransplantEvent.parent});
+        }
+        lastTransplantEvent = {};
     }
 
     if (dragState == 1 || dragState == 2) {
@@ -665,15 +671,21 @@ function canvasMouseMoveHandler(e) {
             dragTransplant = true;
 
             draggedElem.state = 2;
+
+            lastTransplantEvent.lastParent = draggedElem.parent.id;
         }
 
         if (dragTransplant) {
             let dist = distance(draggedElem, draggedElem.parent) - transplantHoldZone;
-            if (dist < 0) dist = 0;
-            let nearNode = draggedElem.parent;
+            if (dist < 0) {
+                dist = 0;
+            }
 
+            let nearNode = draggedElem.parent;
             for (let i in mindMap.nodes) {
-                if (mindMap.nodes[i].transplant || draggedElem.parent == mindMap.nodes[i]) { continue; }
+                if (mindMap.nodes[i].transplant || draggedElem.parent == mindMap.nodes[i]) {
+                    continue;
+                }
 
                 const curDist = distance(draggedElem, mindMap.nodes[i]);
 
@@ -684,7 +696,8 @@ function canvasMouseMoveHandler(e) {
             }
 
             if (nearNode != draggedElem.parent) {
-                transplateNode(draggedElem, nearNode);
+                transplantNode(draggedElem, nearNode);
+                lastTransplantEvent.parent = nearNode.id;
             }
         } else if (draggedElem.state == 2) {
             draggedElem.state = 1;
@@ -1202,7 +1215,7 @@ function loadFilesLocal(files) {
     }
 }
 
-function fileReaderLoadHandler(e, fileName) {
+async function fileReaderLoadHandler(e, fileName) {
     const fileAsText = e.target.result;
     const file = JSON.parse(fileAsText);
 
@@ -1212,7 +1225,10 @@ function fileReaderLoadHandler(e, fileName) {
     const mindFile = new MindFile({ name: fileName, version: 0 });
     mindFile.mindMap = new MindMap(fileName, file['mindMap']);
     mindFile.onSaved = true;
-    openMindFile(mindFile);
+    await openMindFile(mindFile);
+
+    const content = getFileFromMap(mindMap).mindMap;
+    Events.generate('load', mindFile, {content: content});
 }
 
 
@@ -1384,7 +1400,9 @@ function setView(x, y, scale, duration = 0) {
 }
 
 function setViewAuto(file) {
-    if (mindMap.nodes.flat().length == 0) return;
+    if (mindMap.nodes.flat().length == 0) {
+        return;
+    }
 
     if (file && file['editorSettings'] && file['editorSettings']['centerOfView']) {
         // If exist settings of view in file
@@ -1456,12 +1474,15 @@ function saveFileLocal() {
 async function saveFileRemote() {
     if (!user.session) return;
 
-    const file = getFileFromMap(mindMap);
     if (mindFileCur.id) {
-        await updateRemoteFile(mindFileCur, file);
+        // TODO: check sync events
+        showNotification('File already saved and updated');
     } else {
-        await insertRemoteFile(mindFileCur, file);
+        await insertRemoteFile(mindFileCur); // TODO: catch errors
         checkMindFile(mindFileCur);
+        
+        // TODO: sub on new file
+        showNotification('File saved');
     }
 }
 
@@ -1524,6 +1545,7 @@ async function openMindFile(mindFile) {
 
 async function openMindFileRemote(id) {
     const mindFile = new MindFile({ id: id });
+
     const remoteFile = await getRemoteFile(mindFile.id);
 
     if (remoteFile) {
@@ -1531,11 +1553,23 @@ async function openMindFileRemote(id) {
         mindFile.version = remoteFile.timestamp;
         mindFile.name = remoteFile.name;
 
-        const content = JSON.parse(remoteFile.content);
-        mindFile.mindMap = new MindMap(remoteFile.name, content.mindMap);
+        mindFile.mindMap = new MindMap(remoteFile.name);
         mindFile.onSaved = true;
 
-        openMindFile(mindFile);
+        await openMindFile(mindFile);
+
+        const events = await getRemoteFileEvents(mindFile.id);
+        for (const event of events) {
+            updateMindFileEventHandler({
+                type: 'event',
+                fileId: id,
+                data: event.content,
+                timestamp: event.timestamp,
+            }, event.type);
+        }
+
+        setViewAuto(mindFile);
+
         showNotification(`MindMap ${mindFile.name} loaded`);
     } else {
         showNotification(`MindMap ${mindFile.name} failed load`);
@@ -1610,7 +1644,7 @@ async function selectMindFile(num) {
 
     mindFileCur = mindFiles[num];
 
-    if (mindFileCur.needUpdate) {
+    if (false && mindFileCur.needUpdate) {
         const remoteFile = await getRemoteFile(mindFileCur.id);
 
         if (remoteFile) {
@@ -1677,7 +1711,7 @@ async function updateMindFileHandler(msg) {
     showNotification(`MindMap ${mindFile.name} updated on WS`);
 }
 
-async function updateMindFileEventHandler(msg) {
+function updateMindFileEventHandler(msg, eventType) {
     if (msg.type !== 'event' || !msg.data || !msg.fileId || !mindFilesRemote[msg.fileId]) {
         return;
     }
@@ -1685,15 +1719,26 @@ async function updateMindFileEventHandler(msg) {
     const mindFile = mindFilesRemote[msg.fileId];
     const event = JSON.parse(msg.data);
 
+    if (!event.type) {
+        event.type = eventType;
+    }
+
     if (event.type === 'file_rename') {
         setFileName(mindFile, event.name);
         return;
     }
 
-    if (event.type === 'add') {
-        const parent = mindFile.mindMap.nodesById[event.parent];
-        if (!parent) return;
+    // TODO: check event ts
+    mindFile.timestampEvent = msg.timestamp;
 
+    if (event.type === 'load') {
+        mindFile.mindMap.importFromStruct(event.content);
+        checkBounds(mindMap, mindMapBox);
+        draw(mindMap);
+    }
+
+    if (event.type === 'add') {
+        const parent = event.parent && mindFile.mindMap.nodesById[event.parent];
         addNode(event.node, mindFile.mindMap, event.x, event.y, '', undefined, parent, event.color);
     }
 
@@ -1722,7 +1767,14 @@ async function updateMindFileEventHandler(msg) {
         setColorNode(node, event.color);
     }
 
-    if (mindFileNum == mindFile.num) {
+    if (event.type === 'transplant') {
+        const parent = mindFile.mindMap.nodesById[event.parent];
+        if (parent) {
+            transplantNode(node, parent);
+        }
+    }
+
+    if (mindFileNum === mindFile.num) {
         checkBounds(mindMap, mindMapBox);
         draw(mindMap);
     }
@@ -1748,7 +1800,6 @@ async function updateMindFileUsersHandler(msg) {
         showMindFileUsers();
     }
 
-    console.log('[Users]', users);
     showNotification(`MindMap ${mindFile.name} updated users on WS`);
 
     if (DEBUG) {
@@ -1994,13 +2045,13 @@ async function copyLinkToClipboard() {
 }
 
 function checkMindFile(mindFile) {
-    if (mindFile != mindFileCur) {
+    if (mindFile !== mindFileCur) {
         return;
     }
 
     if (mindFile.id) {
         $('#context-canvas__share').classList.toggle('none', false);
-        if (mindFile.userId == user.id) {
+        if (mindFile.userId === user.id) {
             $('#context-canvas__delete').classList.toggle('none', false);
         } else {
             $('#context-canvas__delete').classList.toggle('none', true);
@@ -2023,14 +2074,18 @@ function checkMindFile(mindFile) {
 }
 
 function showMindFileUsers() {
+    const aliasPrefix = 'Unidentified';
+    const aliases = ['Echinopsis', 'Washingtonia', 'Aztekium', 'Cocos', 'Pinus', 'Phoenix', 'Cedrus', 'Acacia', 'Sequoia', 'Eucalyptus', 'Nymphaea', 'Rafflesia'];
+
     $('#users').innerHTML = '';
 
     if (!mindFileCur.usersList) return;
 
     for (const user of mindFileCur.usersList) {
+        const alias = aliases[user.alias % aliases.length];
         const userElem = document.createElement('div');
-        userElem.innerHTML = user.token.slice(0, 3);
-        userElem.title = user.token;
+        userElem.innerHTML = aliasPrefix[0] + alias[0];
+        userElem.title = aliasPrefix + ' ' + alias;
         $('#users').append(userElem);
     }
 }
