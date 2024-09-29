@@ -19,7 +19,7 @@ position: relative;
 {
 background: white;
 padding: 0.65em;
-font-family: sans-serif;
+font-family: var(--main-font-family);
 font-size: 0.85em;
 user-select: none;
 }
@@ -139,7 +139,7 @@ grid-template-columns: max-content;
 display:inline-block;
 background: white;
 padding: 0.3em;
-font-family: sans-serif;
+font-family: var(--main-font-family);
 font-size: 0.85em;
 cursor:pointer;
 user-select: none;

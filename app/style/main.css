@@ -1,3 +1,7 @@
+:root {
+    --main-font-family: Helvetica;
+}
+
 html,
 body {
     width: 100%;
@@ -8,6 +12,7 @@ body {
     margin: 0;
     padding: 0;
     overflow: hidden;
+    font-family: var(--main-font-family);
 }
 
 a {
@@ -60,7 +65,7 @@ a:hover {
     width: auto;
 }
 
-#users > div {
+#users>div {
     width: 1.5rem;
     height: 1.5rem;
     display: inline-flex;
@@ -72,10 +77,11 @@ a:hover {
 }
 
 .tlaloc-menu-button,
-.tlaloc-tab, #users > div {
+.tlaloc-tab,
+#users>div {
     color: #565656;
     font-weight: bold;
-    font-family: sans-serif;
+    font-family: var(--main-font-family);
     font-size: 0.85em;
     user-select: none;
     box-shadow: 0 1px 2px rgb(0 0 0 / 10%), 0 0 7px rgb(0 0 0 / 6%);
@@ -122,7 +128,6 @@ a:hover {
     border: 2px solid lightgray;
     color: rgb(82, 82, 82);
     text-align: center;
-    font-weight: bold;
     padding: 0;
     box-sizing: border-box;
 }
@@ -193,7 +198,7 @@ a:hover {
 #context-color-picker__color-picker__button {
     width: 2.5em;
     height: 2.5em;
-    border: 1px solid #ccc;
+    background: linear-gradient(0deg, rgba(103, 215, 196, 1) 0%, rgba(235, 217, 95, 1) 50%, rgba(230, 135, 130, 1) 100%);
 }
 
 #dialogs-cont {
@@ -216,7 +221,7 @@ a:hover {
     background: white;
     color: #565656;
     font-weight: bold;
-    font-family: sans-serif;
+    font-family: var(--main-font-family);
     font-size: 0.85em;
     box-shadow: 0 1px 2px rgb(0 0 0 / 10%), 0 0 7px rgb(0 0 0 / 6%);
     border: 1px solid #ccc;
@@ -226,6 +231,10 @@ a:hover {
 #dialogs-cont>div.top {
     transform: translate(-50%, 0);
     top: 0.5em;
+}
+
+button {
+    font-family: var(--main-font-family);
 }
 
 #dialogs-cont button,
@@ -258,11 +267,68 @@ a:hover {
     text-align: center;
 }
 
-.file-list {
+#file-list-samples {
     display: grid;
     grid-template-columns: 1fr;
     grid-auto-rows: auto;
     grid-gap: 0.5em;
+}
+
+.file-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    max-height: 75vh;
+}
+
+#file-list-body {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+    overflow: auto;
+}
+
+.file-list>div>div {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    border-bottom: 1px solid #ccc;
+    padding: 0.8rem;
+}
+
+#file-list-head {
+    font-weight: bold;
+    font-size: 1.2em;
+    color: #37474F;
+    border-bottom: 1px solid #919191;
+    padding: 0.5rem;
+    text-align: center;
+}
+
+#file-list-body>div.head {
+    font-weight: normal;
+    padding: 0.5rem 0.8rem;
+}
+
+#file-list-body>div.row {
+    cursor: pointer;
+}
+
+#file-list-body>div.message {
+    display: block;
+    text-align: center;
+}
+
+#file-list-body>div:last-child {
+    border: none;
+}
+
+#file-list-body>div.row:hover {
+    background: #f5f5f5;
+}
+
+#dialog-open-remote {
+    padding: 0 !important;
+    overflow: hidden;
 }
 
 #downloader {

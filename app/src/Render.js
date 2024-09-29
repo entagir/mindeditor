@@ -1,4 +1,4 @@
-import { DEBUG, project, baseSize, colors, placeholder, fontFamily, dragTransplant, renameMode, onFilesDrag, renamedNode, draggedElem, mindMapBox } from './index'
+import { DEBUG, project, baseSize, colors, placeholder, fontSize, fontFamily, dragTransplant, renameMode, onFilesDrag, renamedNode, draggedElem, mindMapBox } from './index'
 import { changeNodeDir } from './MindMap/Utils'
 
 let splashText = 'Use Double Click to add nodes';
@@ -61,27 +61,51 @@ export function checkBounds(mindMap, mindMapBox) {
 
                 if (node.joint == 0) {
                     if (node.y > jointsCoords[0].y) {
-                        if (node.x < jointsCoords[3].x) { node.joint = 3; }
-                        if (node.x > jointsCoords[1].x) { node.joint = 1; }
-                        if (node.y > jointsCoords[2].y) { node.joint = 2; }
+                        if (node.x < jointsCoords[3].x) {
+                            node.joint = 3;
+                        }
+                        if (node.x > jointsCoords[1].x) {
+                            node.joint = 1;
+                        }
+                        if (node.y > jointsCoords[2].y) {
+                            node.joint = 2;
+                        }
                     }
                 } else if (node.joint == 1) {
                     if (node.x < jointsCoords[1].x) {
-                        if (node.y > jointsCoords[2].y) { node.joint = 2; }
-                        if (node.y < jointsCoords[0].y) { node.joint = 0; }
-                        if (node.x < jointsCoords[3].x) { node.joint = 3; }
+                        if (node.y > jointsCoords[2].y) {
+                            node.joint = 2;
+                        }
+                        if (node.y < jointsCoords[0].y) {
+                            node.joint = 0;
+                        }
+                        if (node.x < jointsCoords[3].x) {
+                            node.joint = 3;
+                        }
                     }
                 } else if (node.joint == 2) {
                     if (node.y < jointsCoords[2].y) {
-                        if (node.x < jointsCoords[3].x) { node.joint = 3; }
-                        if (node.y < jointsCoords[0].y) { node.joint = 0; }
-                        if (node.x > jointsCoords[1].x) { node.joint = 1; }
+                        if (node.x < jointsCoords[3].x) {
+                            node.joint = 3;
+                        }
+                        if (node.y < jointsCoords[0].y) {
+                            node.joint = 0;
+                        }
+                        if (node.x > jointsCoords[1].x) {
+                            node.joint = 1;
+                        }
                     }
                 } else {
                     if (node.x > jointsCoords[3].x) {
-                        if (node.y < jointsCoords[0].y) { node.joint = 0; }
-                        if (node.x > jointsCoords[1].x) { node.joint = 1; }
-                        if (node.y > jointsCoords[2].y) { node.joint = 2; }
+                        if (node.y < jointsCoords[0].y) {
+                            node.joint = 0;
+                        }
+                        if (node.x > jointsCoords[1].x) {
+                            node.joint = 1;
+                        }
+                        if (node.y > jointsCoords[2].y) {
+                            node.joint = 2;
+                        }
                     }
                 }
             }
@@ -102,8 +126,7 @@ export function checkBounds(mindMap, mindMapBox) {
             }
 
             // Check node text
-            if (!node.textbox.minWidth) // Or changed font
-            {
+            if (!node.textbox.minWidth) { // Or changed font
                 let text = placeholder;
                 drawNodeText(ctx, mindMap, node);
 
@@ -116,7 +139,9 @@ export function checkBounds(mindMap, mindMapBox) {
 
             node.textbox.width = ctx.measureText(text).width;
             node.textbox.height = ctx.measureText(text).actualBoundingBoxAscent + ctx.measureText(text).actualBoundingBoxDescent;
-            if (node.textbox.height < node.textbox.minHeight) { node.textbox.height = node.textbox.minHeight; }
+            if (node.textbox.height < node.textbox.minHeight) {
+                node.textbox.height = node.textbox.minHeight;
+            }
 
             let textOffset = { x: 0, y: 0 };
 
@@ -191,15 +216,16 @@ export function checkBounds(mindMap, mindMapBox) {
     mindMap.view.scale = tempScale;
 }
 
-export function draw(mindMap, canvasElem) {
-    if (!canvasElem) {
-        canvasElem = canvas;
-    }
+export function draw(mindMap, canvasElem=canvas) {
     canvasElem.width = canvasElem.width;
     const ctx = canvasElem.getContext('2d');
 
     ctx.fillStyle = colors['background'];
     ctx.fillRect(0, 0, canvasElem.width, canvasElem.height);
+
+    if (mindMap.loading) {
+        return;
+    }
 
     if (mindMap.nodes.length == 0) {
         drawSplash(ctx, mindMap);
@@ -209,7 +235,9 @@ export function draw(mindMap, canvasElem) {
 
     // Draw branches
     for (const node of mindMap.nodes) {
-        if (!dragTransplant) node['transplant'] = false;
+        if (!dragTransplant) {
+            node['transplant'] = false;
+        }
 
         if (node.parent) {
             // Joint offset respect to elem center
@@ -220,10 +248,18 @@ export function draw(mindMap, canvasElem) {
 
                 const parent = node.parent;
 
-                if (node.joint == 0) { startLine = { x: 0, y: -parent.boundbox.height / 2 }; }
-                if (node.joint == 1) { startLine = { x: parent.boundbox.width / 2, y: 0 }; }
-                if (node.joint == 2) { startLine = { x: 0, y: parent.boundbox.height / 2 }; }
-                if (node.joint == 3) { startLine = { x: -parent.boundbox.width / 2, y: 0 }; }
+                if (node.joint == 0) {
+                    startLine = { x: 0, y: -parent.boundbox.height / 2 };
+                }
+                if (node.joint == 1) {
+                    startLine = { x: parent.boundbox.width / 2, y: 0 };
+                }
+                if (node.joint == 2) {
+                    startLine = { x: 0, y: parent.boundbox.height / 2 };
+                }
+                if (node.joint == 3) {
+                    startLine = { x: -parent.boundbox.width / 2, y: 0 };
+                }
             }
 
             // Draw parent to child (this) branch
@@ -251,7 +287,9 @@ export function draw(mindMap, canvasElem) {
         }
     }
 
-    if (onFilesDrag) { drawCanvasBorder(ctx); }
+    if (onFilesDrag) {
+        drawCanvasBorder(ctx);
+    }
 
     if (DEBUG) {
         ctx.lineWidth = 2;
@@ -273,7 +311,7 @@ export function drawRootText(ctx, mindMap, node) {
     ctx.fillStyle = colors['baseText'];
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'center';
-    ctx.font = 'bold ' + baseSize * mindMap.view.scale + 'px ' + fontFamily;
+    ctx.font = 'normal ' + fontSize * mindMap.view.scale + 'px ' + fontFamily;
     ctx.fillText(text, point.x, point.y);
 
     if (DEBUG) {
@@ -286,7 +324,7 @@ export function drawRootText(ctx, mindMap, node) {
 }
 
 export function drawNodeText(ctx, mindMap, node) {
-    ctx.font = 'bold ' + baseSize * 0.75 * mindMap.view.scale + 'px ' + fontFamily;
+    ctx.font = 'normal ' + fontSize * 0.75 * mindMap.view.scale + 'px ' + fontFamily;
     ctx.fillStyle = colors['placeHolderText'];
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'left';
@@ -322,13 +360,11 @@ function drawRootNode(ctx, mindMap, node) {
     drawRoundedRect(ctx, point.x - node.boundbox.width / 2 * mindMap.view.scale, point.y - node.boundbox.height / 2 * mindMap.view.scale, node.boundbox.width * mindMap.view.scale, node.boundbox.height * mindMap.view.scale, baseSize / 2 * mindMap.view.scale);
     drawRootText(ctx, mindMap, node);
 
-    if (!(renameMode && renamedNode == node)) {
-        // Draw connectors ("+" circles)
-        drawConnector(ctx, mindMap, point.x, point.y - node.boundbox.height / 2 * mindMap.view.scale, node, node.jointState == 0 ? 1 : 0);
-        drawConnector(ctx, mindMap, point.x + node.boundbox.width / 2 * mindMap.view.scale, point.y, node, node.jointState == 1 ? 1 : 0);
-        drawConnector(ctx, mindMap, point.x, point.y + node.boundbox.height / 2 * mindMap.view.scale, node, node.jointState == 2 ? 1 : 0);
-        drawConnector(ctx, mindMap, point.x - node.boundbox.width / 2 * mindMap.view.scale, point.y, node, node.jointState == 3 ? 1 : 0);
-    }
+    // Draw connectors ("+" circles)
+    drawConnector(ctx, mindMap, point.x, point.y - node.boundbox.height / 2 * mindMap.view.scale, node, node.jointState == 0 ? 1 : 0);
+    drawConnector(ctx, mindMap, point.x + node.boundbox.width / 2 * mindMap.view.scale, point.y, node, node.jointState == 1 ? 1 : 0);
+    drawConnector(ctx, mindMap, point.x, point.y + node.boundbox.height / 2 * mindMap.view.scale, node, node.jointState == 2 ? 1 : 0);
+    drawConnector(ctx, mindMap, point.x - node.boundbox.width / 2 * mindMap.view.scale, point.y, node, node.jointState == 3 ? 1 : 0);
 }
 
 function drawNode(ctx, mindMap, node) {
@@ -353,10 +389,10 @@ function drawEdge(ctx, mindMap, start, end, node) {
     ctx.closePath();
 
     function drawBezier(xs, ys, xf, yf) {
-        let p1x = xs + (xf - xs) / 2;
+        let p1x = xs + (xf - xs) / 1.5;
         let p1y = ys;
 
-        let p2x = xs + (xf - xs) / 2;
+        let p2x = xs + (xf - xs) / 2.5;
         let p2y = yf;
 
         ctx.moveTo(xs, ys);
@@ -408,13 +444,16 @@ function drawConnector(ctx, mindMap, x, y, node, state = node.state) {
     } else {
         ctx.fillStyle = color;
     }
+
     ctx.lineWidth = 2 * mindMap.view.scale;
     ctx.strokeStyle = colors['background'];
+
     let r = baseSize / 4;
     if (state > 0) {
         r = baseSize * 0.625;
         ctx.strokeStyle = colors['border'];
     }
+    
     drawCircle(ctx, x, y, r * mindMap.view.scale);
 
     // Draw text
