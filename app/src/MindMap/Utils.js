@@ -14,10 +14,14 @@ export function addNode(id, mindMap, x, y, name, joint, parent, color, colorDark
         }
     }
 
-    if (!colorDark) colorDark = darkColor(color, 0.9);
-    if (!colorLight) colorLight = opacityColor(color, 0.4);
+    if (!colorDark) {
+        colorDark = darkColor(color, colors.darkColorCoef);
+    }
+    if (!colorLight) {
+        colorLight = opacityColor(color, colors.lightColorCoef);
+    }
 
-    return mindMap.addNode({id, x, y, name, joint, parent, color, colorDark, colorLight});
+    return mindMap.addNode({ id, x, y, name, joint, parent, color, colorDark, colorLight });
 }
 
 export function moveNode(node, offsetX, offsetY) {
@@ -35,8 +39,8 @@ export function setColorNode(node, color, colorDark, colorLight) {
     }
 
     node.color = color;
-    node.colorDark = colorDark || darkColor(node.color, 0.9);
-    node.colorLight = colorLight || opacityColor(node.color, 0.4);
+    node.colorDark = colorDark || darkColor(node.color, colors.darkColorCoef);
+    node.colorLight = colorLight || opacityColor(node.color, colors.lightColorCoef);
 }
 
 export function transplantNode(branch, node) {
@@ -107,7 +111,11 @@ export function calculateNodeCoords(node, jointNum) {
 
     if (node.parent) {
         // Node
-        if (node.dir == 'left') { nodeStartAngle += 90; } else { nodeStartAngle -= 90; }
+        if (node.dir == 'left') {
+            nodeStartAngle += 90;
+        } else {
+            nodeStartAngle -= 90;
+        }
     } else {
         // Root
         if (jointNum == 0) {
@@ -141,43 +149,60 @@ export function calculateNodeCoords(node, jointNum) {
 
             let resultStartAngle = currentStartAngle;
 
-            if (jointNum == 0 || jointNum == 1) { resultStartAngle += currentStartAngleOffset * mirror; } else { resultStartAngle -= currentStartAngleOffset * mirror; }
+            if (jointNum == 0 || jointNum == 1) {
+                resultStartAngle += currentStartAngleOffset * mirror;
+            } else {
+                resultStartAngle -= currentStartAngleOffset * mirror;
+            }
 
             mirror *= -1; // Reverse mirror
 
-            let left = radius * Math.cos((nodeStartAngle + resultStartAngle) * Math.PI / 180) + center.x;
-            let right = radius * Math.cos((nodeStartAngle + resultStartAngle + currentSectorAngle) * Math.PI / 180) + center.x;
-            let top = radius * Math.sin((nodeStartAngle + resultStartAngle) * Math.PI / 180) + center.y;
-            let bottom = radius * Math.sin((nodeStartAngle + resultStartAngle + currentSectorAngle) * Math.PI / 180) + center.y;
+            const left = radius * Math.cos((nodeStartAngle + resultStartAngle) * Math.PI / 180) + center.x;
+            const right = radius * Math.cos((nodeStartAngle + resultStartAngle + currentSectorAngle) * Math.PI / 180) + center.x;
+            const top = radius * Math.sin((nodeStartAngle + resultStartAngle) * Math.PI / 180) + center.y;
+            const bottom = radius * Math.sin((nodeStartAngle + resultStartAngle + currentSectorAngle) * Math.PI / 180) + center.y;
 
-            let find = false;
+            let onFind = false;
 
             for (let i in node.childs) {
+                if (!node.parent && node.childs[i].joint != jointNum) {
+                    continue;
+                }
+
                 // If current connector
-                if (node.parent || node.childs[i].joint == jointNum) {
-                    if (!node.parent && jointNum == 0) {
-                        if (node.childs[i].x > left && node.childs[i].x < right) { find = true; }
-                    }
-                    if (!node.parent && jointNum == 2) {
-                        if (node.childs[i].x > right && node.childs[i].x < left) { find = true; }
-                    }
 
-                    if (!node.parent && jointNum == 1 || node.parent && node.dir == 'right') {
-                        if (node.childs[i].y > top && node.childs[i].y < bottom) { find = true; }
+                if (!node.parent && jointNum == 0) {
+                    if (node.childs[i].x > left && node.childs[i].x < right) {
+                        onFind = true;
                     }
-                    if (!node.parent && jointNum == 3 || node.parent && node.dir == 'left') {
-                        if (node.childs[i].y > bottom && node.childs[i].y < top) { find = true; }
+                }
+                if (!node.parent && jointNum == 2) {
+                    if (node.childs[i].x > right && node.childs[i].x < left) {
+                        onFind = true;
                     }
+                }
 
-                    if (find) { break; }
+                if (!node.parent && jointNum == 1 || node.parent && node.dir == 'right') {
+                    if (node.childs[i].y > top && node.childs[i].y < bottom) {
+                        onFind = true;
+                    }
+                }
+                if (!node.parent && jointNum == 3 || node.parent && node.dir == 'left') {
+                    if (node.childs[i].y > bottom && node.childs[i].y < top) {
+                        onFind = true;
+                    }
+                }
+
+                if (onFind) {
+                    break;
                 }
             }
 
-            if (!find) {
+            if (!onFind) {
                 // Calculate node coords in middle of current sector
-                let newNodeAngle = (nodeStartAngle + resultStartAngle + currentSectorAngle / 2) * Math.PI / 180;
+                const newNodeAngle = (nodeStartAngle + resultStartAngle + currentSectorAngle / 2) * Math.PI / 180;
 
-                let newNodeCoords = { x: 0, y: 0 };
+                const newNodeCoords = { x: 0, y: 0 };
                 newNodeCoords.x = radius * Math.cos(newNodeAngle) + center.x;
                 newNodeCoords.y = radius * Math.sin(newNodeAngle) + center.y;
 
@@ -187,7 +212,9 @@ export function calculateNodeCoords(node, jointNum) {
             if (mirror == -1) {
                 currentStartAngleOffset += currentSectorAngle / 2;
 
-                if (currentStartAngle - currentStartAngleOffset < 0) { break; }
+                if (currentStartAngle - currentStartAngleOffset < 0) {
+                    break;
+                }
             }
         }
 
@@ -198,7 +225,7 @@ export function calculateNodeCoords(node, jointNum) {
 export function isOverNodeText(event, node) {
     const cursor = unproject({ x: event.offsetX, y: event.offsetY });;
 
-    return isOverRect(node.textbox, cursor);
+    return isOverRect(node.textbox, cursor, baseSize / 2);
 }
 
 export function isOverNode(event, node) {
@@ -216,16 +243,24 @@ export function isOverRoot(event, node) {
 export function isOverRootJoint(event, node) {
     const cursorPoint = unproject({ x: event.offsetX, y: event.offsetY });
 
-    if (isOverCircle(node.x, node.y - node.boundbox.height / 2, baseSize * 0.625, cursorPoint)) { return 0; }
-    if (isOverCircle(node.x + node.boundbox.width / 2, node.y, baseSize * 0.625, cursorPoint)) { return 1; }
-    if (isOverCircle(node.x, node.y + node.boundbox.height / 2, baseSize * 0.625, cursorPoint)) { return 2; }
-    if (isOverCircle(node.x - node.boundbox.width / 2, node.y, baseSize * 0.625, cursorPoint)) { return 3; }
+    if (isOverCircle(node.x, node.y - node.boundbox.height / 2, baseSize * 0.625, cursorPoint)) {
+        return 0;
+    }
+    if (isOverCircle(node.x + node.boundbox.width / 2, node.y, baseSize * 0.625, cursorPoint)) {
+        return 1;
+    }
+    if (isOverCircle(node.x, node.y + node.boundbox.height / 2, baseSize * 0.625, cursorPoint)) {
+        return 2;
+    }
+    if (isOverCircle(node.x - node.boundbox.width / 2, node.y, baseSize * 0.625, cursorPoint)) {
+        return 3;
+    }
 
     return -1;
 }
 
-function isOverRect(rect, cursorPoint) {
-    return ((cursorPoint.x > rect.x) && (cursorPoint.x < rect.x + rect.width) && (cursorPoint.y > rect.y) && (cursorPoint.y < rect.y + rect.height));
+function isOverRect(rect, cursorPoint, padding = 0) {
+    return ((cursorPoint.x > rect.x - padding) && (cursorPoint.x < rect.x + rect.width + padding) && (cursorPoint.y > rect.y - padding) && (cursorPoint.y < rect.y + rect.height + padding));
 }
 
 function isOverCircle(circleX, circleY, circleRadius, cursorPoint) {

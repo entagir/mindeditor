@@ -41,7 +41,7 @@ class EventsClass {
         }
 
         if (mindFile.id && mindFilesRemote[mindFile.id]) {
-            sendEventForRemoteFile(mindFile, mindFile.events[mindFile.events.length-1]);
+            sendEventForRemoteFile(mindFile, mindFile.events[mindFile.events.length - 1]);
         }
     }
 
@@ -61,6 +61,7 @@ class EventsClass {
             node: options.id,
             x: options.x,
             y: options.y,
+            joint: options.joint,
             user: options.user,
         });
     }
@@ -81,6 +82,7 @@ class EventsClass {
             type: 'add',
             node: options.id,
             parent: options.parent,
+            joint: options.joint,
             x: options.x,
             y: options.y,
             color: options.color,

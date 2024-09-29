@@ -51,4 +51,34 @@ export function showNotification(text) {
     console.info(text);
 }
 
-export function $(s) { return document.querySelector(s); }
+export function tsToDateTime(dt, type='datetime') {
+    if (!dt) {
+        return;
+    }
+
+    let s = ``;
+    if (type == 'datetime' || type == 'date') {
+        s += `${f(dt.getDate())}.${f(dt.getMonth() + 1)}.${dt.getFullYear()}`;
+    }
+    if (type == 'datetime') {
+        s += ` `;
+    }
+    if (type == 'datetime' || type == 'time') {
+        s += `${f(dt.getHours())}:${f(dt.getMinutes())}:${f(dt.getSeconds())}`;
+    }
+    return s;
+
+    function f(p) {
+        p = p.toString();
+
+        if (p.length == 1) {
+            return '0' + p;
+        } else {
+            return p;
+        }
+    }
+}
+
+export function $(s) { 
+    return document.querySelector(s);
+}

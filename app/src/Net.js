@@ -1,4 +1,4 @@
-import { DEBUG, user, updateMindFileHandler, updateMindFileEventHandler, updateMindFileUsersHandler } from './index'
+import { DEBUG, user, updateMindFileHandler, updateMindFileEventHandler, updateMindFileUsersHandler, doneMindFileEventHandler } from './index'
 const Config = require('./Config.json')
 
 export async function insertRemoteFile(mindFile) {
@@ -21,7 +21,7 @@ export async function insertRemoteFile(mindFile) {
             if (pay.id) {
                 mindFile.id = pay.id;
                 mindFile.userId = user.id;
-                mindFile.version = pay.timestamp;
+                mindFile.timestampEvent = pay.timestamp;
                 mindFile.onSaved = true;
 
                 // TODO: send events packages (REST)
@@ -50,13 +50,13 @@ export async function updateRemoteFile(mindFile, file) {
                 'Content-Type': 'application/json',
                 'Authorization': user.session
             },
-            body: JSON.stringify(bodyJSON)
+            body: JSON.stringify(bodyJSON),
         });
 
         if (response.status === 200) {
             const pay = await response.json();
             if (pay.timestamp) {
-                mindFile.version = pay.timestamp;
+                mindFile.timestampEvent = pay.timestamp;
                 mindFile.onSaved = true;
             }
         } else {
@@ -81,9 +81,9 @@ export async function getRemoteFile(id) {
     }
 }
 
-export async function getRemoteFileEvents(id) {
+export async function getRemoteFileEvents(id, options={}) {
     try {
-        const response = await fetch(`${Config.scheme}://${Config.host}/api/mindmap/events/${id}`);
+        const response = await fetch(`${Config.scheme}://${Config.host}/api/mindmap/events/${id}?min=${options.min || ""}`);
 
         if (response.status === 200) {
             return await response.json();
@@ -238,7 +238,9 @@ export async function register(login, password) {
 }
 
 export async function ping(session) {
-    if (!session) return {};
+    if (!session) {
+        return {};
+    }
 
     try {
         const response = await fetch(`${Config.scheme}://${Config.host}/api/ping`, {
@@ -307,7 +309,7 @@ const socketManager = {
                 }
 
                 if (msg.type === 'event-done') {
-                    
+                    doneMindFileEventHandler(msg);
                 }
 
                 if (msg.type === 'users') {

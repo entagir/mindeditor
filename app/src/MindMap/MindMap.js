@@ -1,10 +1,10 @@
 import { v4 as uuid } from 'uuid';
 import { darkColor, opacityColor } from '../Utils'
-
+import { colors } from '../index'
 class MindFile {
     constructor(fileListItem, storageName = null, load) {
         this.name = fileListItem.name;
-        this.version = fileListItem.version || 0;
+        this.timestampEvent = fileListItem.timestampEvent || 0;
         this.id = fileListItem.id;
         this.service = fileListItem.service;
         this.path = fileListItem.path;
@@ -28,14 +28,14 @@ class MindFile {
 
             let localFile = JSON.parse(localStorage.getItem(this.storageName));
 
-            if (this.storageName && localFile && localFile.version == this.version) {
+            if (this.storageName && localFile && localFile.timestampEvent == this.timestampEvent) {
                 file = localFile;
             } else {
                 // For URL path!
                 // Load from URL
                 const res = await fetch(this.path);
                 file = await res.json();
-                file.version = this.version;
+                file.timestampEvent = this.timestampEvent;
 
                 // Update localStorage
                 if (this.storageName) {
@@ -75,8 +75,8 @@ class MindMap {
 
         if (options.parent) {
             if (options.color) {
-                options.colorDark = options.colorDark || darkColor(options.color, 0.9);
-                options.colorLight = options.colorLight || opacityColor(options.color, 0.4);
+                options.colorDark = options.colorDark || darkColor(options.color, colors.darkColorCoef);
+                options.colorLight = options.colorLight || opacityColor(options.color, colors.lightColorCoef);
             }
 
             const node = new Node(options);
@@ -106,7 +106,7 @@ class MindMap {
     deleteNode(node, first) {
         if (first && node.parent) {
             const i = node.parent.childs.indexOf(node);
-            
+
             if (i !== -1) {
                 node.parent.childs.splice(i, 1);
             }
@@ -116,11 +116,11 @@ class MindMap {
             this.deleteNode(node.childs[i]);
         }
 
-        const i = this.nodes.indexOf(node); 
+        const i = this.nodes.indexOf(node);
 
         if (i !== -1) {
             this.nodes.splice(i, 1);
-            delete(this.nodesById[node.id]);
+            delete (this.nodesById[node.id]);
         }
     }
 
@@ -162,7 +162,9 @@ class MindMap {
         }
 
         function addPlainNode(mindMap, node, parent) {
-            const currentNode = mindMap.addNode({id: node.id, x: node.x, y: node.y, name: node.name, joint: node.joint, parent: parent, color: node.color});
+            const currentNode = mindMap.addNode({ id: node.id, x: node.x, y: node.y, name: node.name, joint: node.joint, parent: parent, color: node.color });
+            if (!currentNode) return;
+
             currentNode.action = node.action;
 
             if (currentNode.parent && currentNode.parent.x > currentNode.x) {
@@ -172,8 +174,8 @@ class MindMap {
             }
 
             if (node.color) {
-                node.colorDark = darkColor(node.color, 0.9);
-                node.colorLight = opacityColor(node.color, 0.4);
+                node.colorDark = darkColor(node.color, colors.darkColorCoef);
+                node.colorLight = opacityColor(node.color, colors.lightColorCoef);
             }
 
             for (let i in node.nodes) {
@@ -186,7 +188,7 @@ class MindMap {
 class Node {
     constructor(options) {
         this.id = options.id || uuid(),
-        this.x = options.x;
+            this.x = options.x;
         this.y = options.y;
         this.name = options.name || '';
         this.parent = options.parent;
