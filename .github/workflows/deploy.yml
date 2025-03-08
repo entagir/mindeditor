@@ -16,10 +16,14 @@ jobs:
       - run: echo "${{secrets.key}}" > "$HOME/.ssh/id_rsa"
       - run: chmod 600 "$HOME/.ssh/id_rsa"
       - run: echo "${{vars.config}}" > "./app/src/Config.json"
+      
+      - run: echo "${{vars.config}}"
+      - run: cat "./app/src/Config.json"
 
       # Build
       - run: npm ci
       - run: npm run build
+      - run: cat "./app/src/Config.json"
 
       # Deploy
       - run: cd dist && rsync -e "ssh -p 22 -i $HOME/.ssh/id_rsa -o StrictHostKeyChecking=no" --archive --compress --delete . u0418897@31.31.198.239:/var/www/u0418897/public_html/mind.entagir.ru
