@@ -187,8 +187,8 @@ class MindMap {
 
 class Node {
     constructor(options) {
-        this.id = options.id || uuid(),
-            this.x = options.x;
+        this.id = options.id || uuid();
+        this.x = options.x;
         this.y = options.y;
         this.name = options.name || '';
         this.parent = options.parent;

@@ -44,10 +44,16 @@ export function setColorNode(node, color, colorDark, colorLight) {
 }
 
 export function transplantNode(branch, node) {
-    branch.parent.childs.splice(branch.parent.childs.indexOf(branch), 1);
+    if (branch.parent) {
+        branch.parent.childs.splice(branch.parent.childs.indexOf(branch), 1);
+    }
 
-    branch.parent = node;
-    node.childs.push(branch);
+    if (node) {
+        branch.parent = node;
+        node.childs.push(branch);
+    } else {
+        branch.parent = undefined;
+    }
 }
 
 export function distance(nodeA, nodeB) {

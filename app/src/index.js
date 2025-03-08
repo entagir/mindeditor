@@ -126,6 +126,8 @@ window.onresize = function () {
 
 
 async function init() {
+    const currentUrl = new URL(window.location.href);
+    
     initUI();
 
     // Help map init
@@ -136,6 +138,8 @@ async function init() {
 
     selectMindFile('menu');
     await loadTempMaps();
+    await checkURL(currentUrl);
+    
     loadTempUser();
 }
 
@@ -674,7 +678,7 @@ function canvasMouseMoveHandler(e) {
         moveNode(draggedElem, elemOffsetX, elemOffsetY);
 
         // Init transplant. Mark child nodes as not connectable
-        if (!dragTransplant && keys['shift'] && draggedElem.parent) {
+        if (!dragTransplant && keys['shift']) {
             dfsNode(draggedElem, function (node) {
                 node['transplant'] = true;
             });
@@ -683,11 +687,14 @@ function canvasMouseMoveHandler(e) {
 
             draggedElem.state = 2;
 
-            lastTransplantEvent.lastParent = draggedElem.parent.id;
+            lastTransplantEvent.lastParent = draggedElem.parent && draggedElem.parent.id;
         }
 
         if (dragTransplant) {
-            let dist = distance(draggedElem, draggedElem.parent) - transplantHoldZone;
+            let dist = baseSize * 15 + 1;
+            if (draggedElem.parent) {
+                dist = distance(draggedElem, draggedElem.parent) - transplantHoldZone
+            }
             if (dist < 0) {
                 dist = 0;
             }
@@ -706,9 +713,13 @@ function canvasMouseMoveHandler(e) {
                 }
             }
 
+            if (dist > baseSize * 15) {
+                nearNode = undefined;
+            }
+
             if (nearNode != draggedElem.parent) {
                 transplantNode(draggedElem, nearNode);
-                lastTransplantEvent.parent = nearNode.id;
+                lastTransplantEvent.parent = nearNode && nearNode.id;
             }
         } else if (draggedElem.state == 2) {
             draggedElem.state = 1;
@@ -780,8 +791,13 @@ function canvasMouseMoveHandler(e) {
 }
 
 function canvasMouseDownHandler(e) {
-    if (workSpaceLoader.onLoading) return;
-    if (renameMode && !renameAuto) return;
+    if (workSpaceLoader.onLoading) {
+        return;
+    }
+
+    if (renameMode && !renameAuto) {
+        return;
+    }
 
     const x = e.offsetX;
     const y = e.offsetY;
@@ -792,9 +808,13 @@ function canvasMouseDownHandler(e) {
         canvasMouseMoveHandler(e);
     }
 
-    if (e.which == 3) return;
+    if (e.which == 3) {
+        return;
+    }
 
-    if (dragWait || dragWaitWorkspace) return;
+    if (dragWait || dragWaitWorkspace) {
+        return;
+    }
 
     if (mindMap.editable) {
         for (let i in mindMap.nodes) {
@@ -826,6 +846,8 @@ function canvasMouseDownHandler(e) {
         return;
     }
 
+    // TODO: refactor fn name
+    
     function initDragElem(node) {
         const cursor = unproject({ x: e.offsetX, y: e.offsetY });
 
@@ -852,7 +874,9 @@ function canvasMouseDownHandler(e) {
 }
 
 function canvasMouseUpHandler(e) {
-    if (workSpaceLoader.onLoading) { return; }
+    if (workSpaceLoader.onLoading) {
+        return;
+    }
 
     completeDrag(e);
 }
@@ -1316,7 +1340,9 @@ function showDialog(name) {
         dialog.style.display = 'none';
     }
 
-    if (!name) { return; }
+    if (!name) {
+        return;
+    }
 
     $('#dialogs-cont').style.display = 'block';
     $('#dialog-' + name).style.display = 'block';
@@ -1335,7 +1361,7 @@ function showDialog(name) {
         let link = '';
 
         if (mindFileCur.id) {
-            link = `${new URL(window.location.href).origin}/${mindFileCur.id}`;
+            link = `${new URL(window.location.href).origin}?id=${mindFileCur.id}`;
         }
 
         $('#input-share').value = link;
@@ -1598,6 +1624,7 @@ async function openMindFileRemote(id) {
 
         mindFile.mindMap.loading = false;
         setViewAuto(mindFile);
+        checkMindFile(mindFile);
 
         showNotification(`MindMap ${mindFile.name} loaded`);
     } else {
@@ -1812,9 +1839,7 @@ function updateMindFileEventHandler(msg, eventType) {
 
     if (event.type === 'transplant') {
         const parent = mindFile.mindMap.nodesById[event.parent];
-        if (parent) {
-            transplantNode(node, parent);
-        }
+        transplantNode(node, parent);
     }
 
     if (mindFileNum === mindFile.num) {
@@ -1910,29 +1935,27 @@ function saveTempMaps() {
 }
 
 async function loadTempMaps() {
-    if (localStorage.temp) {
-        const temp = JSON.parse(localStorage.temp);
+    if (!localStorage.temp) return;
 
-        for (const file of temp['files']) {
-            const mindFile = new MindFile({ name: file.name, timestampEvent: file.timestampEvent, id: file.id });
-            mindFile.mindMap = new MindMap(file.name, file.file.mindMap);
-            mindFile.editorSettings = file.file.editorSettings;
+    const temp = JSON.parse(localStorage.temp);
 
-            mindFile.onSaved = file.onSaved;
+    for (const file of temp['files']) {
+        const mindFile = new MindFile({ name: file.name, timestampEvent: file.timestampEvent, id: file.id });
+        mindFile.mindMap = new MindMap(file.name, file.file.mindMap);
+        mindFile.editorSettings = file.file.editorSettings;
 
-            if (mindFile.id) {
-                mindFile.userId = file.userId || 0;
-                mindFile.needUpdate = true;
-            }
+        mindFile.onSaved = file.onSaved;
 
-            showNotification(`MindMap ${mindFile.name} loaded from cache`);
-            await openMindFile(mindFile);
+        if (mindFile.id) {
+            mindFile.userId = file.userId || 0;
+            mindFile.needUpdate = true;
         }
 
-        selectMindFile(temp['selected']);
+        showNotification(`MindMap ${mindFile.name} loaded from cache`);
+        await openMindFile(mindFile);
     }
 
-    await checkCurrentURL();
+    selectMindFile(temp['selected']);
 }
 
 async function loadTempUser() {
@@ -1949,18 +1972,17 @@ async function loadTempUser() {
 }
 
 
-async function checkCurrentURL() {
-    const url = new URL(window.location.href);
+async function checkURL(url = new URL(window.location.href)) {
     //const id = url.pathname.split('/')[1];
     const id = url.searchParams.get('id');
+    
+    window.history.replaceState({}, null, '/');
 
     if (!id || !id.length || mindFilesRemote[id]) {
         return;
     }
 
     await openMindFileRemote(id);
-
-    //window.history.replaceState({}, null, '/');
 }
 
 async function loginToService() {
@@ -2127,16 +2149,16 @@ function checkMindFile(mindFile) {
         $('#context-canvas__delete').classList.toggle('none', true);
     }
 
-    return;
-
     if (mindFile.id) {
         //window.history.replaceState({}, null, `/diagram/${mindFile.id}`);
-        window.history.replaceState({}, null, `/${mindFile.id}`);
-    } else if (mindFileNum == 'menu' || mindFileNum == 'help') {
-        window.history.replaceState({}, null, `/${mindFileNum}`);
+        window.history.replaceState({}, null, `/?id=${mindFile.id}`);
     } else {
         window.history.replaceState({}, null, `/`);
     }
+
+    // else if (mindFileNum == 'menu' || mindFileNum == 'help') {
+    //     window.history.replaceState({}, null, `/${mindFileNum}`);
+    // }
 }
 
 function showMindFileUsers() {
