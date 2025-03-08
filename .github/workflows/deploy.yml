@@ -15,6 +15,7 @@ jobs:
       - run: mkdir "$HOME/.ssh"
       - run: echo "${{secrets.key}}" > "$HOME/.ssh/id_rsa"
       - run: chmod 600 "$HOME/.ssh/id_rsa"
+      - run: echo "${{vars.config}}" > "./app/src/Config.json"
 
       # Build
       - run: npm ci
