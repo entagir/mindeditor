@@ -1587,11 +1587,13 @@ async function openMindFile(mindFile) {
         mindFilesRemote[mindFile.id] = mindFile;
     }
 
+    if (!mindFile.events) {
+        mindFile.events = [];
+    }
+
     workSpaceLoader.stop();
 
     setFileName(mindFileCur, name);
-
-    mindFile.events = [];
 }
 
 async function openMindFileRemote(id) {
@@ -1863,6 +1865,7 @@ async function updateMindFileUsersHandler(msg) {
     const users = msg.data;
 
     mindFile.usersList = users;
+    mindFile.usersTotal = msg.total;
 
     if (mindFileNum == mindFile.num) {
         showMindFileUsers();
@@ -1909,9 +1912,8 @@ function doneMindFileEventHandler(msg) {
 
 
 function saveTempMaps() {
-    if (mindFiles.flat().length == 0) {
+    if (mindFiles.flat().length === 0) {
         localStorage.removeItem('temp');
-
         return;
     }
 
@@ -1920,11 +1922,20 @@ function saveTempMaps() {
     temp['selected'] = mindFileNum;
 
     for (let i in mindFiles) {
-        if (i == 'menu' || i == 'help') continue;
+        if (i == 'menu' || i == 'help') {
+            continue;
+        }
 
         const file = getFileFromMap(mindFiles[i].mindMap, true);
-
-        temp['files'].push({ file: file, name: mindFiles[i].mindMap.name, timestampEvent: mindFiles[i].timestampEvent, id: mindFiles[i].id, userId: mindFiles[i].userId, onSaved: mindFiles[i].onSaved });
+        temp['files'].push({
+            file: file,
+            name: mindFiles[i].mindMap.name,
+            timestampEvent: mindFiles[i].timestampEvent,
+            id: mindFiles[i].id,
+            userId: mindFiles[i].userId,
+            onSaved: mindFiles[i].onSaved,
+            events: mindFiles[i].events,
+        });
 
         if (mindFileNum == i) {
             temp['selected'] = temp['files'].length - 1;
@@ -1940,11 +1951,17 @@ async function loadTempMaps() {
     const temp = JSON.parse(localStorage.temp);
 
     for (const file of temp['files']) {
-        const mindFile = new MindFile({ name: file.name, timestampEvent: file.timestampEvent, id: file.id });
+        const mindFile = new MindFile({
+            name: file.name,
+            timestampEvent: file.timestampEvent,
+            id: file.id
+        });
+
         mindFile.mindMap = new MindMap(file.name, file.file.mindMap);
         mindFile.editorSettings = file.file.editorSettings;
 
         mindFile.onSaved = file.onSaved;
+        mindFile.events = file.events;
 
         if (mindFile.id) {
             mindFile.userId = file.userId || 0;
@@ -2162,18 +2179,35 @@ function checkMindFile(mindFile) {
 }
 
 function showMindFileUsers() {
+    const slotsCount = 3;
     const aliasPrefix = 'Unidentified';
     const aliases = ['Echinopsis', 'Washingtonia', 'Aztekium', 'Cocos', 'Pinus', 'Phoenix', 'Cedrus', 'Acacia', 'Sequoia', 'Eucalyptus', 'Nymphaea', 'Rafflesia'];
 
     $('#users').innerHTML = '';
 
-    if (!mindFileCur.usersList) return;
+    if (!mindFileCur.usersList) {
+        return;
+    }
 
-    for (const user of mindFileCur.usersList) {
+    let usersCount = 0;
+    for (const [i, user] of mindFileCur.usersList.entries()) {
+        if (slotsCount - usersCount === 1) {
+            if (i < mindFileCur.usersList.length - 1 || mindFileCur.usersTotal > slotsCount) {
+                const otherUsersCount = mindFileCur.usersTotal - usersCount;
+                insertUserBlock(`+${otherUsersCount}`, `+${otherUsersCount} users`);
+                break;
+            }
+        }
+
         const alias = aliases[user.alias % aliases.length];
+        insertUserBlock(aliasPrefix[0] + alias[0], aliasPrefix + ' ' + alias);
+        usersCount++;
+    }
+
+    function insertUserBlock(text, title) {
         const userElem = document.createElement('div');
-        userElem.innerHTML = aliasPrefix[0] + alias[0];
-        userElem.title = aliasPrefix + ' ' + alias;
+        userElem.innerHTML = text;
+        userElem.title = title;
         $('#users').append(userElem);
     }
 }

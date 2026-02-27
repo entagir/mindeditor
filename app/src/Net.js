@@ -37,36 +37,6 @@ export async function insertRemoteFile(mindFile) {
     }
 }
 
-export async function updateRemoteFile(mindFile, file) {
-    const bodyJSON = {
-        name: mindFile.name,
-        content: JSON.stringify(file)
-    };
-
-    try {
-        const response = await fetch(`${Config.scheme}://${Config.host}/api/mindmap/${mindFile.id}`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': user.session
-            },
-            body: JSON.stringify(bodyJSON),
-        });
-
-        if (response.status === 200) {
-            const pay = await response.json();
-            if (pay.timestamp) {
-                mindFile.timestampEvent = pay.timestamp;
-                mindFile.onSaved = true;
-            }
-        } else {
-            //console.error(response.status);
-        }
-    } catch (error) {
-        //console.error('err: ', error.message);
-    }
-}
-
 export async function getRemoteFile(id) {
     try {
         const response = await fetch(`${Config.scheme}://${Config.host}/api/mindmap/${id}`);
