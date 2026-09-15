@@ -1,9 +1,9 @@
 <h1 align="center">MindEditor</h1>
 
-<img src="https://entagir.ru/img/mind.png">
+<img src="https://entagir.xyz/img/mind1.png">
 
 
-<h2 align="center"><a  href="https://mind.entagir.ru">mind.entagir.ru</a></h2>
+<h2 align="center"><a  href="https://mind.entagir.xyz">mind.entagir.xyz</a></h2>
 
 ## Description
 MindEditor is a simple web-based mind map editor. Use it for creating and editing of your mind maps.
